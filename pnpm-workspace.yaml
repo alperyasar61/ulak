@@ -1,0 +1,7 @@
+packages:
+  - .
+
+onlyBuiltDependencies:
+  - 7zip-bin
+
+ignoredBuiltDependencies: []
