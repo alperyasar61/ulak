@@ -1,5 +1,8 @@
 export interface ManifestEntry { path: string; bytes: number; language: string; }
 export interface DependencyRef { name: string; version: string; ecosystem: "npm" | "PyPI" | "crates.io" | "Go"; }
+export interface SbomComponent { name: string; version: string; ecosystem: DependencyRef["ecosystem"]; purl: string; scope: "direct"; osvQueryReady: boolean; }
+export interface ApiSurface { method: string; path: string; file: string; authLikely: boolean; }
+export interface PrivacySignal { category: string; file: string; evidence: string; }
 export interface LocalFinding { id: string; area: string; severity: "high" | "medium" | "low"; title: string; detail: string; evidence: string[]; confidence: "medium" | "low"; }
 export interface LocalReport {
   projectPurpose: string;
@@ -11,7 +14,10 @@ export interface LocalReport {
   modules: Array<{ name: string; files: number }>;
   entryPoints: string[];
   dependencies: DependencyRef[];
+  sbom: SbomComponent[];
   relationships: Array<{ from: string; to: string; type: string }>;
+  apiSurface: ApiSurface[];
+  privacySignals: PrivacySignal[];
   findings: LocalFinding[];
   secretFileCount: number;
   analyzedAt: string;
@@ -23,6 +29,9 @@ export interface Research { sources: SourceCard[]; errors: string[]; researchedA
 export type AuditStatus = "pass" | "watch" | "risk";
 export interface ProactiveCheck { id: string; category: string; title: string; status: AuditStatus; severity: "high" | "medium" | "low"; summary: string; why: string; evidence: string[]; nextStep: string; basis: string; }
 export interface ProactiveAudit { score: number; grade: "A" | "B" | "C" | "D"; summary: string; checkedAt: string; checks: ProactiveCheck[]; externalResearchPending: boolean; }
+export interface AuditDiff { scoreDelta: number; previousScore: number; currentScore: number; previousGrade: ProactiveAudit["grade"]; currentGrade: ProactiveAudit["grade"]; regressed: string[]; improved: string[]; newChecks: string[]; }
+export type FindingStateStatus = "open" | "triage" | "accepted" | "resolved";
+export interface FindingState { status: FindingStateStatus; note: string; updatedAt: string; }
 export interface Project {
   id: string;
   name: string;
@@ -34,6 +43,8 @@ export interface Project {
   aiReport: AiReport | null;
   research: Research | null;
   proactiveAudit: ProactiveAudit | null;
+  proactiveDiff: AuditDiff | null;
+  findingStates: Record<string, FindingState>;
   aiConsentAt: string | null;
   researchConsentAt: string | null;
   status: string;

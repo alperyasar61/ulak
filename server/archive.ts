@@ -4,6 +4,7 @@ import path from "node:path";
 import { createRequire } from "node:module";
 import type { DependencyRef } from "./research.js";
 import { buildProactiveAudit, type ProactiveAudit } from "./proactive.js";
+import { analyzePhase2, type ApiSurface, type PrivacySignal } from "./phase2.js";
 
 const require = createRequire(import.meta.url);
 const seven = require("7zip-min") as {
@@ -19,8 +20,6 @@ const MAX_TEXT_PER_FILE = 400 * 1024;
 const SKIP_DIRS = new Set([".git", "node_modules", "vendor", "dist", "build", "target", "coverage", "__pycache__", ".venv", "venv", "site-packages", ".next", "out"]);
 const TEXT_EXTENSIONS = new Set([".py", ".pyi", ".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".json", ".md", ".rst", ".txt", ".toml", ".yaml", ".yml", ".sh", ".html", ".css", ".scss", ".go", ".rs", ".java", ".kt", ".c", ".h", ".cpp", ".hpp", ".cs", ".sql", ".dockerfile", ".xml", ".ini", ".cfg", ".conf", ".lock", ".gradle", ".vue", ".svelte"]);
 const SECRET_FILENAMES = new Set([".env", ".env.local", ".env.production", "id_rsa", "id_ed25519", "credentials.json", "secrets.json"]);
-/** Import çözümlemesinde uzantısız eşleştirmeye katılan kaynak dosya türleri. */
-const SOURCE_EXTENSIONS = [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".py", ".pyi", ".go", ".rs", ".java", ".kt", ".rb", ".php", ".cs", ".vue", ".svelte"];
 
 export interface ManifestEntry { path: string; bytes: number; language: string; }
 export interface LocalFinding { id: string; area: string; severity: "high" | "medium" | "low"; title: string; detail: string; evidence: string[]; confidence: "medium" | "low"; }
@@ -34,7 +33,10 @@ export interface LocalReport {
   modules: Array<{ name: string; files: number }>;
   entryPoints: string[];
   dependencies: DependencyRef[];
+  sbom: Array<{ name: string; version: string; ecosystem: DependencyRef["ecosystem"]; purl: string; scope: "direct"; osvQueryReady: boolean }>;
   relationships: Array<{ from: string; to: string; type: string }>;
+  apiSurface: ApiSurface[];
+  privacySignals: PrivacySignal[];
   findings: LocalFinding[];
   secretFileCount: number;
   analyzedAt: string;
@@ -143,6 +145,14 @@ function parseDependencies(files: Array<{ path: string; content: string }>): Dep
   return [...result.values()].slice(0, 120);
 }
 
+function buildSbom(dependencies: DependencyRef[]) {
+  return dependencies.map((dependency) => {
+    const encodedName = dependency.name.replace(/^@/, "%40").replace(/\//g, "%2F");
+    const prefix = dependency.ecosystem === "npm" ? "npm" : dependency.ecosystem === "PyPI" ? "pypi" : dependency.ecosystem === "crates.io" ? "cargo" : "golang";
+    return { ...dependency, purl: `pkg:${prefix}/${encodedName}${dependency.version ? `@${dependency.version}` : ""}`, scope: "direct" as const, osvQueryReady: Boolean(dependency.version) };
+  });
+}
+
 function redactForModel(value: string) {
   return value
     .replace(/((?:api[_-]?key|secret|token|password|passwd|authorization)\s*[=:]\s*)(["']?)[^\s"'`,;]+/gi, "$1$2[REDACTED]")
@@ -168,82 +178,24 @@ function buildPurpose(files: Array<{ path: string; content: string }>) {
 }
 
 function collectRelationships(files: Array<{ path: string; content: string }>) {
-  const limit = 80;
+  const pathSet = new Set(files.map((file) => file.path));
   const edges: Array<{ from: string; to: string; type: string }> = [];
-  if (!files.length) return edges;
-
-  /**
-   * Referans çözümlemesi indeksler üzerinden yapılır. Böylece her referans için
-   * tüm dosya listesinin taranması (O(n·m)) yerine sabit sayıda sözlük araması yeterli olur.
-   */
-  const byPath = new Set<string>();
-  const byExtensionlessPath = new Map<string, string>();
-  const byDirectoryFirstFile = new Map<string, string>();
-  const byPythonSuffix = new Map<string, string>();
-
-  for (const { path: filePath } of files) {
-    byPath.add(filePath);
-    const extension = path.posix.extname(filePath).toLowerCase();
-    if (SOURCE_EXTENSIONS.includes(extension)) {
-      const key = filePath.slice(0, -extension.length);
-      if (!byExtensionlessPath.has(key)) byExtensionlessPath.set(key, filePath);
-    }
-    const segments = filePath.split("/");
-    for (let index = 0; index < segments.length - 1; index += 1) {
-      const directory = segments.slice(0, index + 1).join("/");
-      if (!byDirectoryFirstFile.has(directory)) byDirectoryFirstFile.set(directory, filePath);
-    }
-    if (filePath.endsWith(".py")) {
-      segments.forEach((_segment, index) => {
-        const suffix = segments.slice(index).join("/");
-        if (!byPythonSuffix.has(suffix)) byPythonSuffix.set(suffix, filePath);
-      });
-    }
-  }
-
-  const resolvedRefs = new Map<string, string | null>();
-
-  /** Aynı referans birden çok dosyada geçebilir; çözümleme bir kez yapılıp önbelleğe alınır. */
-  function resolveRelative(reference: string) {
-    const cached = resolvedRefs.get(reference);
-    if (cached !== undefined) return cached;
-
-    const extension = path.posix.extname(reference).toLowerCase();
-    // NodeNext/ESM yazımında import "./helper.js" gerçekte helper.ts dosyasını gösterir.
-    const base = extension ? reference.slice(0, -extension.length) : reference;
-    const target =
-      (byPath.has(reference) ? reference : null) ??
-      byExtensionlessPath.get(base) ??
-      byExtensionlessPath.get(`${base}/index`) ??
-      byDirectoryFirstFile.get(base) ??
-      null;
-
-    resolvedRefs.set(reference, target);
-    return target;
-  }
-
-  function resolvePythonModule(moduleName: string) {
-    return byPythonSuffix.get(`${moduleName.replace(/\./g, "/")}.py`) ?? null;
-  }
-
+  const limit = 80;
   for (const file of files) {
     if (edges.length >= limit) break;
-
     const references = new Set<string>();
     for (const match of file.content.matchAll(/(?:from\s*["']([^"']+)["']|import\s*["']([^"']+)["']|require\(\s*["']([^"']+)["']\s*\))/g)) {
-      const reference = match[1] ?? match[2] ?? match[3];
-      if (reference?.startsWith(".")) {
-        references.add(path.posix.normalize(path.posix.join(path.posix.dirname(file.path), reference)));
-      }
+      const ref = match[1] ?? match[2] ?? match[3];
+      if (ref?.startsWith(".")) references.add(path.posix.normalize(path.posix.join(path.posix.dirname(file.path), ref)));
     }
     for (const reference of references) {
-      const target = resolveRelative(reference);
+      const target = [...pathSet].find((candidate) => candidate === reference || candidate.startsWith(`${reference}.`) || candidate.startsWith(`${reference}/`));
       if (target && target !== file.path) edges.push({ from: file.path, to: target, type: "import" });
       if (edges.length >= limit) break;
     }
-
-    for (const match of file.content.matchAll(/^\s*from\s+([\w.]+)\s+import\s+/gm)) {
-      const target = resolvePythonModule(match[1]);
+    const pythonImports = file.content.matchAll(/^\s*from\s+([\w.]+)\s+import\s+/gm);
+    for (const match of pythonImports) {
+      const target = [...pathSet].find((candidate) => candidate.endsWith(`${match[1].replace(/\./g, "/")}.py`));
       if (target && target !== file.path) edges.push({ from: file.path, to: target, type: "import" });
       if (edges.length >= limit) break;
     }
@@ -334,6 +286,7 @@ export async function analyzeArchive(bytes: Buffer, originalName: string): Promi
     }
 
     const dependencies = parseDependencies(textFiles);
+    const sbom = buildSbom(dependencies);
     const stack = new Map<string, "high" | "medium">();
     const has = (name: string) => textFiles.some((file) => file.path.toLowerCase().endsWith(name.toLowerCase()));
     if (has("pyproject.toml") || has("requirements.txt") || archiveNames.some((name) => name.endsWith(".py"))) stack.set("Python", "high");
@@ -351,7 +304,8 @@ export async function analyzeArchive(bytes: Buffer, originalName: string): Promi
     const modules = [...fileCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12).map(([name, count]) => ({ name, files: count }));
     const entryPoints = archiveNames.filter((name) => /(^|\/)(main\.py|__main__\.py|app\.py|server\.(?:ts|js)|index\.(?:ts|js|tsx|jsx)|manage\.py|cli\.py)$/i.test(name)).slice(0, 14);
     const purpose = buildPurpose(textFiles);
-    const findings = findStaticSignals(textFiles, archiveNames);
+    const phase2 = analyzePhase2(textFiles);
+    const findings = [...findStaticSignals(textFiles, archiveNames), ...phase2.findings];
     const relationships = collectRelationships(textFiles);
     const proactiveAudit = buildProactiveAudit({
       archiveNames,
@@ -370,7 +324,10 @@ export async function analyzeArchive(bytes: Buffer, originalName: string): Promi
       modules,
       entryPoints,
       dependencies,
+      sbom,
       relationships,
+      apiSurface: phase2.apiSurface,
+      privacySignals: phase2.privacySignals,
       findings,
       secretFileCount: archiveNames.filter((name) => SECRET_FILENAMES.has(path.posix.basename(name).toLowerCase()) || path.posix.basename(name).toLowerCase().startsWith(".env")).length,
       analyzedAt: new Date().toISOString(),

@@ -35,8 +35,10 @@ export const api = {
   createProject: (form: FormData) => request<{ project: Project }>("/api/projects", { method: "POST", body: form }),
   analyzeWithAI: (projectId: string, model: string) => request<{ aiReport: Project["aiReport"] }>(`/api/projects/${projectId}/ai`, { method: "POST", body: JSON.stringify({ consent: true, model }) }),
   runResearch: (projectId: string, queries: string[]) => request<{ research: Research }>(`/api/projects/${projectId}/research`, { method: "POST", body: JSON.stringify({ consent: true, queries }) }),
-  runProactiveAudit: (projectId: string) => request<{ proactiveAudit: Project["proactiveAudit"] }>(`/api/projects/${projectId}/proactive-audit`, { method: "POST" }),
+  runProactiveAudit: (projectId: string) => request<{ proactiveAudit: Project["proactiveAudit"]; proactiveDiff: Project["proactiveDiff"] }>(`/api/projects/${projectId}/proactive-audit`, { method: "POST" }),
   getMessages: (projectId: string) => request<{ messages: ChatMessage[] }>(`/api/projects/${projectId}/messages`),
   ask: (projectId: string, question: string, model: string) => request<{ answer: string }>(`/api/projects/${projectId}/chat`, { method: "POST", body: JSON.stringify({ consent: true, question, model }) }),
   deleteProject: (projectId: string) => request<{ ok: boolean; warning: string }>(`/api/projects/${projectId}`, { method: "DELETE" }),
+  getFindingStates: (projectId: string) => request<{ findingStates: Project["findingStates"] }>(`/api/projects/${projectId}/finding-states`),
+  updateFindingState: (projectId: string, findingId: string, status: string, note: string) => request<{ findingStates: Project["findingStates"] }>(`/api/projects/${projectId}/findings/${encodeURIComponent(findingId)}/state`, { method: "PUT", body: JSON.stringify({ status, note }) }),
 };

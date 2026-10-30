@@ -1,69 +1,12 @@
-import path from "node:path";
-import { mkdir } from "node:fs/promises";
 import mysql, { type RowDataPacket, type ResultSetHeader } from "mysql2/promise";
-import { DatabaseSync } from "node:sqlite";
-import { storageRoot } from "./storage.js";
 
-interface Driver {
-  dialect: "mysql" | "sqlite";
-  all<T>(sql: string, params?: unknown[]): Promise<T[]>;
-  run(sql: string, params?: unknown[]): Promise<number>;
-}
+const dsn = process.env.DATABASE_URL;
+if (!dsn) throw new Error("DATABASE_URL is unavailable; the managed database capability must be enabled.");
 
-function mysqlDriver(dsn: string): Driver {
-  const pool = mysql.createPool(dsn);
-  return {
-    dialect: "mysql",
-    async all<T>(sql: string, params: unknown[] = []) {
-      const [rows] = await pool.execute<RowDataPacket[]>(sql, params);
-      return rows as unknown as T[];
-    },
-    async run(sql: string, params: unknown[] = []) {
-      const [result] = await pool.execute<ResultSetHeader>(sql, params);
-      return result.affectedRows ?? 0;
-    },
-  };
-}
+export const db = mysql.createPool(dsn);
 
-function sqliteDriver(file: string): Driver {
-  let database: DatabaseSync | null = null;
-  const open = async () => {
-    if (database) return database;
-    await mkdir(path.dirname(file), { recursive: true });
-    database = new DatabaseSync(file);
-    database.exec("PRAGMA journal_mode = WAL");
-    return database;
-  };
-  const normalize = (params: unknown[]) => params.map((value) => (value === undefined ? null : value)) as never[];
-  return {
-    dialect: "sqlite",
-    async all<T>(sql: string, params: unknown[] = []) {
-      const db = await open();
-      return db.prepare(sql).all(...normalize(params)) as unknown as T[];
-    },
-    async run(sql: string, params: unknown[] = []) {
-      const db = await open();
-      const result = db.prepare(sql).run(...normalize(params));
-      return Number(result.changes ?? 0);
-    },
-  };
-}
-
-/**
- * `DATABASE_URL` varsa MySQL, yoksa yerel SQLite kullanılır.
- * Böylece ULAK, yönetilen bir veritabanı olmadan da çalışabilir.
- */
-function createDriver(): Driver {
-  const dsn = process.env.DATABASE_URL?.trim();
-  if (dsn) return mysqlDriver(dsn);
-  const file = process.env.ULAK_DB_FILE?.trim() || path.join(storageRoot(), "ulak.db");
-  return sqliteDriver(file);
-}
-
-const driver = createDriver();
-
-const MYSQL_SCHEMA = [
-  `CREATE TABLE IF NOT EXISTS ulak_projects (
+export async function ensureSchema() {
+  await db.query(`CREATE TABLE IF NOT EXISTS ulak_projects (
     id CHAR(36) NOT NULL PRIMARY KEY,
     owner_hash CHAR(64) NOT NULL,
     name VARCHAR(180) NOT NULL,
@@ -74,6 +17,8 @@ const MYSQL_SCHEMA = [
     manifest_json JSON NOT NULL,
     local_report_json JSON NOT NULL,
     proactive_audit_json JSON NULL,
+    proactive_audit_previous_json JSON NULL,
+    proactive_diff_json JSON NULL,
     ai_report_json LONGTEXT NULL,
     research_json JSON NULL,
     ai_consent_at DATETIME NULL,
@@ -82,10 +27,14 @@ const MYSQL_SCHEMA = [
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME NULL,
-    INDEX idx_ulak_owner_updated (owner_hash, updated_at)
-  )`,
-  `ALTER TABLE ulak_projects ADD COLUMN proactive_audit_json JSON NULL`,
-  `CREATE TABLE IF NOT EXISTS ulak_messages (
+    INDEX idx_ulak_owner_updated (owner_hash, updated_at),
+    INDEX idx_ulak_project_owner (id, owner_hash)
+  )`);
+  try { await db.query("ALTER TABLE ulak_projects ADD COLUMN proactive_audit_json JSON NULL"); } catch { /* mevcut projelerde kolon zaten olabilir */ }
+  try { await db.query("ALTER TABLE ulak_projects ADD COLUMN proactive_audit_previous_json JSON NULL"); } catch { /* mevcut projelerde kolon zaten olabilir */ }
+  try { await db.query("ALTER TABLE ulak_projects ADD COLUMN proactive_diff_json JSON NULL"); } catch { /* mevcut projelerde kolon zaten olabilir */ }
+
+  await db.query(`CREATE TABLE IF NOT EXISTS ulak_messages (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     project_id CHAR(36) NOT NULL,
     owner_hash CHAR(64) NOT NULL,
@@ -93,60 +42,20 @@ const MYSQL_SCHEMA = [
     content MEDIUMTEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_ulak_message_project (project_id, owner_hash, id)
-  )`,
-];
-
-const SQLITE_SCHEMA = [
-  `CREATE TABLE IF NOT EXISTS ulak_projects (
-    id TEXT NOT NULL PRIMARY KEY,
-    owner_hash TEXT NOT NULL,
-    name TEXT NOT NULL,
-    source_name TEXT NOT NULL,
-    source_kind TEXT NOT NULL,
-    source_url TEXT NULL,
-    archive_key TEXT NOT NULL,
-    manifest_json TEXT NOT NULL,
-    local_report_json TEXT NOT NULL,
-    proactive_audit_json TEXT NULL,
-    ai_report_json TEXT NULL,
-    research_json TEXT NULL,
-    ai_consent_at TEXT NULL,
-    research_consent_at TEXT NULL,
-    status TEXT NOT NULL DEFAULT 'ready',
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-    deleted_at TEXT NULL
-  )`,
-  `CREATE INDEX IF NOT EXISTS idx_ulak_owner_updated ON ulak_projects (owner_hash, updated_at)`,
-  `CREATE TABLE IF NOT EXISTS ulak_messages (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id TEXT NOT NULL,
-    owner_hash TEXT NOT NULL,
-    role TEXT NOT NULL,
-    content TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
-  )`,
-  `CREATE INDEX IF NOT EXISTS idx_ulak_message_project ON ulak_messages (project_id, owner_hash, id)`,
-];
-
-export async function ensureSchema() {
-  const statements = driver.dialect === "mysql" ? MYSQL_SCHEMA : SQLITE_SCHEMA;
-  for (const statement of statements) {
-    try {
-      await driver.run(statement);
-    } catch (error) {
-      // MySQL'de mevcut kurulumlarda kolon zaten bulunabilir; diğer hatalar yükseltilir.
-      const message = error instanceof Error ? error.message : "";
-      if (!/duplicate column|already exists/i.test(message)) throw error;
-    }
-  }
+  )`);
+  await db.query(`CREATE TABLE IF NOT EXISTS ulak_finding_states (
+    project_id CHAR(36) NOT NULL,
+    owner_hash CHAR(64) NOT NULL,
+    finding_id VARCHAR(180) NOT NULL,
+    status VARCHAR(24) NOT NULL DEFAULT 'open',
+    note TEXT NULL,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (project_id, finding_id),
+    INDEX idx_ulak_finding_owner (owner_hash, project_id)
+  )`);
 }
 
-export async function pingDatabase() {
-  await driver.all("SELECT 1 AS ok");
-}
-
-export interface ProjectRow {
+export interface ProjectRow extends RowDataPacket {
   id: string;
   owner_hash: string;
   name: string;
@@ -157,14 +66,16 @@ export interface ProjectRow {
   manifest_json: unknown;
   local_report_json: unknown;
   proactive_audit_json: unknown;
+  proactive_audit_previous_json: unknown;
+  proactive_diff_json: unknown;
   ai_report_json: string | null;
   research_json: unknown;
-  ai_consent_at: string | null;
-  research_consent_at: string | null;
+  ai_consent_at: Date | string | null;
+  research_consent_at: Date | string | null;
   status: string;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
+  created_at: Date | string;
+  updated_at: Date | string;
+  deleted_at: Date | string | null;
 }
 
 export function decodeJson<T>(value: unknown, fallback: T): T {
@@ -175,80 +86,87 @@ export function decodeJson<T>(value: unknown, fallback: T): T {
   return value as T;
 }
 
-const PROJECT_COLUMNS = "id, owner_hash, name, source_name, source_kind, source_url, archive_key, manifest_json, local_report_json, proactive_audit_json, ai_report_json, research_json, ai_consent_at, research_consent_at, status, created_at, updated_at, deleted_at";
-
 export async function getProject(id: string, ownerHash: string) {
-  const rows = await driver.all<ProjectRow>(
-    `SELECT ${PROJECT_COLUMNS} FROM ulak_projects WHERE id = ? AND owner_hash = ? AND deleted_at IS NULL LIMIT 1`,
+  const [rows] = await db.execute<ProjectRow[]>(
+    "SELECT * FROM ulak_projects WHERE id = ? AND owner_hash = ? AND deleted_at IS NULL LIMIT 1",
     [id, ownerHash],
   );
   return rows[0] ?? null;
 }
 
 export async function listProjects(ownerHash: string) {
-  return driver.all<ProjectRow>(
-    `SELECT ${PROJECT_COLUMNS} FROM ulak_projects WHERE owner_hash = ? AND deleted_at IS NULL ORDER BY updated_at DESC LIMIT 50`,
+  const [rows] = await db.execute<ProjectRow[]>(
+    "SELECT id, name, source_name, source_kind, source_url, manifest_json, local_report_json, proactive_audit_json, proactive_audit_previous_json, proactive_diff_json, ai_report_json, research_json, ai_consent_at, research_consent_at, status, created_at, updated_at FROM ulak_projects WHERE owner_hash = ? AND deleted_at IS NULL ORDER BY updated_at DESC LIMIT 50",
     [ownerHash],
   );
+  return rows;
 }
 
 export async function insertProject(values: {
   id: string; ownerHash: string; name: string; sourceName: string; sourceKind: string;
   sourceUrl: string | null; archiveKey: string; manifest: unknown; localReport: unknown; proactiveAudit: unknown;
 }) {
-  await driver.run(
+  await db.execute<ResultSetHeader>(
     `INSERT INTO ulak_projects (id, owner_hash, name, source_name, source_kind, source_url, archive_key, manifest_json, local_report_json, proactive_audit_json)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      values.id, values.ownerHash, values.name, values.sourceName, values.sourceKind, values.sourceUrl,
-      values.archiveKey, JSON.stringify(values.manifest), JSON.stringify(values.localReport), JSON.stringify(values.proactiveAudit),
-    ],
+     VALUES (?, ?, ?, ?, ?, ?, ?, CAST(? AS JSON), CAST(? AS JSON), CAST(? AS JSON))`,
+    [values.id, values.ownerHash, values.name, values.sourceName, values.sourceKind, values.sourceUrl, values.archiveKey, JSON.stringify(values.manifest), JSON.stringify(values.localReport), JSON.stringify(values.proactiveAudit)],
   );
 }
 
 export async function updateProjectAnalysis(id: string, ownerHash: string, report: unknown, consentAt: Date) {
-  await driver.run(
-    "UPDATE ulak_projects SET ai_report_json = ?, ai_consent_at = ?, status = 'ready', updated_at = CURRENT_TIMESTAMP WHERE id = ? AND owner_hash = ? AND deleted_at IS NULL",
-    [JSON.stringify(report), consentAt.toISOString(), id, ownerHash],
+  await db.execute<ResultSetHeader>(
+    "UPDATE ulak_projects SET ai_report_json = ?, ai_consent_at = ?, status = 'ready' WHERE id = ? AND owner_hash = ? AND deleted_at IS NULL",
+    [JSON.stringify(report), consentAt, id, ownerHash],
   );
 }
 
 export async function updateProjectResearch(id: string, ownerHash: string, report: unknown, consentAt: Date) {
-  await driver.run(
-    "UPDATE ulak_projects SET research_json = ?, research_consent_at = ?, status = 'ready', updated_at = CURRENT_TIMESTAMP WHERE id = ? AND owner_hash = ? AND deleted_at IS NULL",
-    [JSON.stringify(report), consentAt.toISOString(), id, ownerHash],
+  await db.execute<ResultSetHeader>(
+    "UPDATE ulak_projects SET research_json = CAST(? AS JSON), research_consent_at = ?, status = 'ready' WHERE id = ? AND owner_hash = ? AND deleted_at IS NULL",
+    [JSON.stringify(report), consentAt, id, ownerHash],
   );
 }
 
-export async function updateProjectProactiveAudit(id: string, ownerHash: string, audit: unknown) {
-  await driver.run(
-    "UPDATE ulak_projects SET proactive_audit_json = ?, status = 'ready', updated_at = CURRENT_TIMESTAMP WHERE id = ? AND owner_hash = ? AND deleted_at IS NULL",
-    [JSON.stringify(audit), id, ownerHash],
+export async function updateProjectProactiveAudit(id: string, ownerHash: string, audit: unknown, previous: unknown, diff: unknown) {
+  await db.execute<ResultSetHeader>(
+    "UPDATE ulak_projects SET proactive_audit_json = CAST(? AS JSON), proactive_audit_previous_json = CAST(? AS JSON), proactive_diff_json = CAST(? AS JSON), status = 'ready' WHERE id = ? AND owner_hash = ? AND deleted_at IS NULL",
+    [JSON.stringify(audit), previous ? JSON.stringify(previous) : null, diff ? JSON.stringify(diff) : null, id, ownerHash],
   );
 }
 
 export async function addMessage(projectId: string, ownerHash: string, role: "user" | "assistant", content: string) {
-  await driver.run(
+  await db.execute<ResultSetHeader>(
     "INSERT INTO ulak_messages (project_id, owner_hash, role, content) VALUES (?, ?, ?, ?)",
     [projectId, ownerHash, role, content],
   );
 }
 
 export async function getMessages(projectId: string, ownerHash: string) {
-  return driver.all<{ role: string; content: string; created_at: string }>(
+  const [rows] = await db.execute<RowDataPacket[]>(
     "SELECT role, content, created_at FROM ulak_messages WHERE project_id = ? AND owner_hash = ? ORDER BY id ASC LIMIT 40",
     [projectId, ownerHash],
   );
+  return rows;
 }
 
 export async function softDeleteProject(id: string, ownerHash: string) {
-  const affected = await driver.run(
-    "UPDATE ulak_projects SET deleted_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND owner_hash = ? AND deleted_at IS NULL",
+  const [result] = await db.execute<ResultSetHeader>(
+    "UPDATE ulak_projects SET deleted_at = NOW() WHERE id = ? AND owner_hash = ? AND deleted_at IS NULL",
     [id, ownerHash],
   );
-  return affected > 0;
+  return result.affectedRows > 0;
 }
 
-export function databaseKind() {
-  return driver.dialect;
+export async function listFindingStates(projectId: string, ownerHash: string) {
+  const [rows] = await db.execute<RowDataPacket[]>("SELECT finding_id, status, note, updated_at FROM ulak_finding_states WHERE project_id = ? AND owner_hash = ? ORDER BY updated_at DESC", [projectId, ownerHash]);
+  return Object.fromEntries(rows.map((row) => [row.finding_id, { status: row.status, note: row.note ?? "", updatedAt: row.updated_at }]));
+}
+
+export async function upsertFindingState(projectId: string, ownerHash: string, findingId: string, status: string, note: string) {
+  await db.execute<ResultSetHeader>(
+    `INSERT INTO ulak_finding_states (project_id, owner_hash, finding_id, status, note) VALUES (?, ?, ?, ?, ?)
+     ON DUPLICATE KEY UPDATE owner_hash = VALUES(owner_hash), status = VALUES(status), note = VALUES(note), updated_at = CURRENT_TIMESTAMP`,
+    [projectId, ownerHash, findingId, status, note],
+  );
+  return listFindingStates(projectId, ownerHash);
 }

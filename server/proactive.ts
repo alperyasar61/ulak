@@ -23,6 +23,8 @@ export interface ProactiveAudit {
   externalResearchPending: boolean;
 }
 
+export interface AuditDiff { scoreDelta: number; previousScore: number; currentScore: number; previousGrade: ProactiveAudit["grade"]; currentGrade: ProactiveAudit["grade"]; regressed: string[]; improved: string[]; newChecks: string[]; }
+
 type TextFile = { path: string; content: string };
 type Dependency = { name: string; version: string; ecosystem: string };
 
@@ -59,9 +61,16 @@ export function buildProactiveAudit(input: {
   const hasLicense = hasName(lowerNames, /(^|\/)(license|license\.md|license\.txt|copying)(\.|$)/);
   const hasReadme = hasName(lowerNames, /(^|\/)readme(?:\.|$)/);
   const hasDocker = hasName(lowerNames, /(^|\/)(dockerfile|\.dockerignore|docker-compose[^/]*\.ya?ml)$/);
+  const dockerFiles = input.textFiles.filter((file) => /(^|\/)(dockerfile|docker-compose[^/]*\.ya?ml)$/i.test(file.path));
+  const hasIaC = hasName(lowerNames, /(^|\/)(terraform|k8s|kubernetes|helm|charts)(\/|$)/) || hasName(lowerNames, /\.(tf|tfvars)$/);
+  const iacHasPrivilegedSetting = input.textFiles.some((file) => /privileged\s*:\s*true|hostNetwork\s*:\s*true|runAsUser\s*:\s*0|0\.0\.0\.0\/0/i.test(file.content));
+  const dockerHasWeakSetting = dockerFiles.some((file) => /(^|\n)\s*USER\s+root\b|(^|\n)\s*FROM\s+[^\n:]+:latest\b|(^|\n)\s*ADD\s+https?:/i.test(file.content));
+  const ciFiles = input.textFiles.filter((file) => /(^|\/)(\.github\/workflows\/|\.gitlab-ci\.yml$|jenkinsfile$|azure-pipelines\.yml$|circleci\/config\.yml$)/i.test(file.path));
+  const ciHasFloatingAction = ciFiles.some((file) => /uses:\s*[^\s]+@(main|master|latest)\b/i.test(file.content));
   const hasBinary = hasName(lowerNames, /\.(exe|dll|so|dylib|class|jar|bin|wasm)$/);
   const hasPinned = input.dependencies.length > 0 && input.dependencies.every((dependency) => /(?:^|[^\d])\d+\.\d+(?:\.\d+)?/.test(dependency.version));
-  const filesWithRuntimeSecrets = input.textFiles.filter((file) => /(?:api[_-]?key|secret|token|password|private[_-]?key)\s*[=:]\s*["'][^"']{8,}["']/i.test(file.content));
+  const secretPattern = /(?:api[_-]?key|client[_-]?secret|access[_-]?token|secret|password|passwd|private[_-]?key)\s*[=:]\s*["'][^"']{8,}["']|\b(?:AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9_]{20,}|xox[baprs]-[A-Za-z0-9-]{18,}|sk-[A-Za-z0-9_-]{16,}|AIza[A-Za-z0-9_-]{25,})\b|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/i;
+  const filesWithRuntimeSecrets = input.textFiles.filter((file) => secretPattern.test(file.content));
   const checks: ProactiveCheck[] = [
     {
       id: "dependency-locking", category: "Tedarik zinciri", title: "Bağımlılık sürümleri kilitlenmiş mi?",
@@ -91,6 +100,33 @@ export function buildProactiveAudit(input: {
       basis: "GitHub Code Security — Secret scanning",
     },
     {
+      id: "container-hardening", category: "Container", title: "Container yapılandırması sertleştirilmiş mi?",
+      status: checkStatus(!hasDocker || !dockerHasWeakSetting, hasDocker), severity: dockerHasWeakSetting ? "high" : "low",
+      summary: !hasDocker ? "Docker yapılandırması bulunamadı; container yüzeyi değerlendirilmedi." : dockerHasWeakSetting ? "Root kullanıcı, latest image veya uzak ADD kullanımı gibi zayıf bir ayar sinyali var." : "Docker dosyalarında bilinen zayıf ayar örüntüsü görülmedi.",
+      why: "Container varsayılanları ve imaj etiketleri, izolasyon ve tedarik zinciri riskini doğrudan etkiler.",
+      evidence: dockerHasWeakSetting ? dockerFiles.map((file) => `${file.path} (ayar maskelendi)`).slice(0, 4) : [],
+      nextStep: dockerHasWeakSetting ? "Root olmayan kullanıcı, sabit imaj digest’i ve güvenli COPY akışı kullanın." : "İmajları digest ile sabitleyin ve üretim container’ını en az yetkiyle çalıştırın.",
+      basis: "CIS Docker Benchmark / SLSA — build integrity",
+    },
+    {
+      id: "iac-exposure", category: "Cloud / IaC", title: "IaC ve orkestrasyon ayrıcalıkları",
+      status: checkStatus(!hasIaC || !iacHasPrivilegedSetting, hasIaC), severity: iacHasPrivilegedSetting ? "high" : "low",
+      summary: !hasIaC ? "Terraform, Kubernetes veya Helm izi bulunmadı." : iacHasPrivilegedSetting ? "Geniş network/host veya root ayrıcalığı veren IaC sinyali bulundu." : "IaC dosyalarında bilinen ayrıcalık örüntüsü görülmedi.",
+      why: "Yanlış cloud veya orkestrasyon varsayımları tek bir uygulama açığını tüm çalışma alanına yayabilir.",
+      evidence: iacHasPrivilegedSetting ? input.textFiles.filter((file) => /privileged|hostNetwork|runAsUser|0\.0\.0\.0\/0/i.test(file.content)).map((file) => `${file.path} (statik sinyal)`).slice(0, 4) : [],
+      nextStep: iacHasPrivilegedSetting ? "Ayrıcalığı daraltın; public network ve root çalıştırmayı policy ile engelleyin." : "IaC policy scan ve değişiklik onayı ekleyin.",
+      basis: "OWASP ASVS / Kubernetes Pod Security Standards",
+    },
+    {
+      id: "ci-pinning", category: "CI/CD", title: "CI action ve pipeline bağımlılıkları sabit mi?",
+      status: checkStatus(!hasCi || !ciHasFloatingAction, hasCi), severity: ciHasFloatingAction ? "medium" : "low",
+      summary: !hasCi ? "CI yapılandırması bulunmadı." : ciHasFloatingAction ? "CI içinde main/master/latest gibi kayan action referansı bulundu." : "CI action referanslarında bilinen kayan etiket görülmedi.",
+      why: "Kayan CI action’ları, aynı commit’in farklı zamanda farklı kod çalıştırmasına neden olabilir.",
+      evidence: ciHasFloatingAction ? ciFiles.map((file) => `${file.path} (action referansı)`).slice(0, 4) : [],
+      nextStep: ciHasFloatingAction ? "Action sürümlerini immutable commit SHA ile sabitleyin ve Dependabot benzeri güncelleme akışı kurun." : "CI action’larını SHA ile pinleyip provenance çıktısını saklayın.",
+      basis: "OpenSSF Scorecard — Dangerous Workflow / Pinned Dependencies",
+    },
+    {
       id: "governance", category: "Yönetişim", title: "Güvenlik politikası ve lisans",
       status: checkStatus(hasSecurityDocs && hasLicense, hasSecurityDocs || hasLicense), severity: hasSecurityDocs && hasLicense ? "low" : "medium",
       summary: hasSecurityDocs && hasLicense ? "Güvenlik yönetişimi ve lisans işareti bulundu." : "Güvenlik politikası veya lisans eksik/tespit edilemedi.",
@@ -110,23 +146,11 @@ export function buildProactiveAudit(input: {
     },
     {
       id: "artifact-integrity", category: "Tedarik zinciri", title: "Kaynak ve build bütünlüğü sinyali",
-      status: hasBinary ? "risk" : hasCi ? "pass" : "watch", severity: hasBinary ? "high" : "low",
-      summary: hasBinary
-        ? "Arşivde kontrol edilmesi gereken ikili/derlenmiş artefakt bulundu."
-        : hasCi
-          ? "İkili artefakt görünmedi ve CI izi var; build hattı gözden geçirilebilir."
-          : "İkili artefakt görünmedi, fakat build hattı arşivden doğrulanamadı.",
+      status: checkStatus(!hasBinary && (hasCi || !hasDocker), hasDocker || hasBinary), severity: hasBinary ? "high" : "low",
+      summary: hasBinary ? "Arşivde kontrol edilmesi gereken ikili/derlenmiş artefakt bulundu." : hasCi ? "CI izi var; artefakt üretim hattı gözden geçirilebilir." : "İkili artefakt görülmedi, fakat build hattı arşivden doğrulanamadı.",
       why: "Derlenmiş dosyaların kaynağa göre izlenebilirliği ve build provenansı tedarik zinciri güveninin temelidir.",
-      evidence: hasBinary
-        ? lowerNames.filter((name) => /\.(exe|dll|so|dylib|class|jar|bin|wasm)$/.test(name)).slice(0, 5)
-        : hasCi || hasDocker
-          ? lowerNames.filter((name) => /\.github\/workflows|gitlab-ci|jenkinsfile|circleci|dockerfile|docker-compose/.test(name)).slice(0, 3)
-          : [],
-      nextStep: hasBinary
-        ? "İkilileri kaynaktan üretin; provenance ve imzalı release yaklaşımını değerlendirin."
-        : hasCi
-          ? "Build çıktısının hangi commit’ten üretildiğini belgeleyin."
-          : "Build çıktısının hangi commit’ten üretildiğini belgeleyen bir CI workflow’u ekleyin.",
+      evidence: hasBinary ? lowerNames.filter((name) => /\.(exe|dll|so|dylib|class|jar|bin|wasm)$/.test(name)).slice(0, 5) : (hasCi ? ["CI yapılandırması görüldü"] : []),
+      nextStep: hasBinary ? "İkilileri kaynaktan üretin; provenance ve imzalı release yaklaşımını değerlendirin." : "Build çıktısının hangi commit’ten üretildiğini belgeleyin.",
       basis: "SLSA — artifact integrity and provenance",
     },
     {
@@ -160,4 +184,20 @@ export function buildProactiveAudit(input: {
     checks,
     externalResearchPending: input.dependencies.length > 0,
   };
+}
+
+export function diffAudits(previous: ProactiveAudit | null, current: ProactiveAudit): AuditDiff | null {
+  if (!previous) return null;
+  const before = new Map(previous.checks.map((check) => [check.id, check]));
+  const regressed: string[] = [];
+  const improved: string[] = [];
+  const newChecks: string[] = [];
+  const rank = (status: AuditStatus) => status === "risk" ? 2 : status === "watch" ? 1 : 0;
+  for (const check of current.checks) {
+    const old = before.get(check.id);
+    if (!old) { newChecks.push(check.title); continue; }
+    if (rank(check.status) > rank(old.status)) regressed.push(`${check.title}: ${old.status} → ${check.status}`);
+    if (rank(check.status) < rank(old.status)) improved.push(`${check.title}: ${old.status} → ${check.status}`);
+  }
+  return { scoreDelta: current.score - previous.score, previousScore: previous.score, currentScore: current.score, previousGrade: previous.grade, currentGrade: current.grade, regressed, improved, newChecks };
 }

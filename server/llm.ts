@@ -1,128 +1,66 @@
-export interface ChatMessage {
-  role: "system" | "user" | "assistant";
-  content: string;
-}
-
-/** EVREN LLM Gateway'in `/v1/models` yanıtındaki model kaydı. */
 export interface ModelInfo {
   id: string;
-  name?: string;
+  display_name?: string;
   description?: string;
-  task?: string;
-  modalities?: string[];
-  ownedBy?: string;
-  /** Her iki fiyat da sıfırsa promosyon/ücretsiz dönem demektir. */
-  freeUntil?: string;
-  isFree?: boolean;
+  owned_by?: string;
+  pricing?: { input_per_1m_usd?: number; output_per_1m_usd?: number; input_credits_per_1m_tokens?: number; output_credits_per_1m_tokens?: number };
+  capabilities?: Record<string, unknown>;
 }
 
-const DEFAULT_BASE_URL = "https://evren-llmapi.ssyz.org.tr/v1";
-const MODEL_CACHE_MS = 60_000;
-/** Bazı modeller (ör. glm-5.3) uzun bağlamlarda 3 dakikayı aşabiliyor; sınır ortamdan ayarlanabilir. */
-const DEFAULT_TIMEOUT_MS = 300_000;
-const NON_CHAT_MODEL = /(embedding|rerank|ocr|asr|tts|speech|transcri|guard|moderation|voxcpm)/i;
+export interface ChatMessage { role: "system" | "user" | "assistant"; content: string; }
 
-let cached: { models: ModelInfo[]; at: number } | null = null;
-
-function gatewayConfig() {
-  const base = (process.env.EVREN_API_URL ?? DEFAULT_BASE_URL).replace(/\/+$/, "");
-  const key = process.env.EVREN_API_KEY ?? "";
-  if (!key) throw new Error("EVREN API anahtarı yapılandırılmamış. Sunucu ortamına EVREN_API_KEY ekleyin.");
+function platformConfig() {
+  const base = (process.env.MANUS_API_URL || process.env.BUILT_IN_FORGE_API_URL || "").replace(/\/+$/, "");
+  const key = process.env.MANUS_API_KEY || process.env.BUILT_IN_FORGE_API_KEY || "";
+  if (!base || !key) throw new Error("Platform AI servisi yapılandırılmamış.");
   return { base, key };
 }
 
-interface RawModel {
-  id?: string;
-  task?: string;
-  modalities?: string[];
-  owned_by?: string;
-  pricing?: { prompt_token_price?: number; completion_token_price?: number; free_until?: string };
-  context_length?: number;
-  max_output_tokens?: number;
-}
-
-function isChatModel(model: RawModel) {
-  if (!model.id) return false;
-  if (model.task && model.task !== "chat") return false;
-  return !NON_CHAT_MODEL.test(model.id);
-}
-
-function toModelInfo(model: RawModel): ModelInfo {
-  const pricing = model.pricing ?? {};
-  const isFree = Number(pricing.prompt_token_price ?? 0) === 0 && Number(pricing.completion_token_price ?? 0) === 0;
-  return {
-    id: String(model.id),
-    name: String(model.id),
-    description: isFree
-      ? `EVREN LLM Gateway${pricing.free_until ? ` · ${pricing.free_until} tarihine kadar ücretsiz` : " · ücretsiz dönem"}`
-      : "EVREN LLM Gateway · kredi ile ücretlendirilir",
-    task: model.task ?? "chat",
-    modalities: Array.isArray(model.modalities) ? model.modalities : ["text"],
-    ownedBy: model.owned_by ?? "evren",
-    freeUntil: pricing.free_until,
-    isFree,
-  };
-}
-
 export async function listAvailableModels(): Promise<ModelInfo[]> {
-  if (cached && Date.now() - cached.at < MODEL_CACHE_MS) return cached.models;
-  const { base, key } = gatewayConfig();
-  const response = await fetch(`${base}/models`, {
+  const { base, key } = platformConfig();
+  const response = await fetch(`${base}/v1/models`, {
     headers: { Authorization: `Bearer ${key}` },
     signal: AbortSignal.timeout(20_000),
   });
-  const body = (await response.json().catch(() => ({}))) as {
-    data?: RawModel[];
-    error?: { message?: string };
-  };
-  if (!response.ok || body.error) {
-    throw new Error(body.error?.message ?? `EVREN model listesi alınamadı (${response.status}).`);
-  }
-  const models = (body.data ?? []).filter(isChatModel).map(toModelInfo);
-  if (!models.length) throw new Error("EVREN hesabında sohbet modeli bulunamadı.");
-  cached = { models, at: Date.now() };
-  return models;
+  const body = await response.json().catch(() => ({})) as { data?: ModelInfo[]; error?: { message?: string } };
+  if (!response.ok || body.error) throw new Error(body.error?.message ?? `Model listesi alınamadı (${response.status}).`);
+  return (body.data ?? []).filter((m) => m.id && !/unsupported|deprecated|superseded|shutdown/i.test(m.description ?? ""));
 }
 
-export async function chatWithModel(modelId: string, messages: ChatMessage[], maxTokens = 7_000) {
+export async function chatWithModel(modelId: string, messages: ChatMessage[]) {
   const models = await listAvailableModels();
-  if (!models.some((model) => model.id === modelId)) {
-    throw new Error(`"${modelId}" modeli EVREN hesabında kullanılabilir değil.`);
+  const model = models.find((candidate) => candidate.id === modelId);
+  if (!model) throw new Error("Seçilen AI modeli bu projede kullanılabilir değil.");
+  const { base, key } = platformConfig();
+  const body: Record<string, unknown> = { model: modelId, messages };
+  const owner = (model.owned_by ?? "").toLowerCase();
+  const thinkingParam = String(model.capabilities?.thinking_param ?? "");
+  const description = model.description ?? "";
+  if (owner.includes("google") || modelId.startsWith("gemini")) {
+    body.max_tokens = 7_000;
+    if (thinkingParam === "reasoning") body.reasoning = { effort: "low" };
+    if (thinkingParam === "thinking") body.thinking = { budget_tokens: 1_024 };
+  } else if (owner.includes("openai") || modelId.startsWith("gpt")) {
+    body.max_completion_tokens = 7_000;
+    const effortLine = /Effort:\s*([^\n]+)/i.exec(description)?.[1] ?? "";
+    if (thinkingParam === "reasoning" && /\blow\b/i.test(effortLine)) body.reasoning = { effort: "low" };
+  } else if (owner.includes("anthropic") || modelId.startsWith("claude")) {
+    body.max_tokens = 7_000;
+    if (thinkingParam === "thinking") body.thinking = { type: "enabled", budget_tokens: 2_048 };
   }
-  const { base, key } = gatewayConfig();
-  const timeoutMs = Number(process.env.EVREN_TIMEOUT_MS ?? DEFAULT_TIMEOUT_MS) || DEFAULT_TIMEOUT_MS;
-  const request = async () => fetch(`${base}/chat/completions`, {
+  const response = await fetch(`${base}/v1/chat/completions`, {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ model: modelId, messages, max_tokens: maxTokens, temperature: 0.2 }),
-    signal: AbortSignal.timeout(timeoutMs),
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(120_000),
   });
-
-  let response = await request();
-  // EVREN kapasite hatası kısa süreli olabilir; tek bir kez yeniden denenir.
-  if (response.status === 503) {
-    await new Promise((resolve) => setTimeout(resolve, 2_000));
-    response = await request();
-  }
-
-  const result = (await response.json().catch(() => ({}))) as {
-    error?: { message?: string; code?: string };
-    choices?: Array<{
-      finish_reason?: string;
-      message?: { content?: string | Array<{ type?: string; text?: string }>; reasoning?: string };
-    }>;
+  const result = await response.json().catch(() => ({})) as {
+    error?: { message?: string };
+    choices?: Array<{ message?: { content?: string | Array<{ type?: string; text?: string }> } }>;
   };
-  if (!response.ok || result.error) {
-    throw new Error(result.error?.message ?? `EVREN AI isteği başarısız oldu (${response.status}).`);
-  }
-
-  const choice = result.choices?.[0];
-  const content = choice?.message?.content;
+  if (!response.ok || result.error) throw new Error(result.error?.message ?? `AI isteği başarısız oldu (${response.status}).`);
+  const content = result.choices?.[0]?.message?.content;
   const text = Array.isArray(content) ? content.map((part) => part.text ?? "").join("\n") : content;
-  if (!text?.trim()) {
-    throw new Error(choice?.finish_reason === "length"
-      ? "Model yanıtı token sınırında kesildi; daha kısa bir bağlamla yeniden deneyin."
-      : "AI boş yanıt döndürdü; sonuç kaydedilmedi.");
-  }
-  return { text: text.trim(), finishReason: choice?.finish_reason };
+  if (!text?.trim()) throw new Error("AI boş yanıt döndürdü; sonuç kaydedilmedi.");
+  return text.trim();
 }

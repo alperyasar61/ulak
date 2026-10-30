@@ -49,3 +49,23 @@ En büyük risk, statik sinyalin kesin güvenlik hükmü gibi yorumlanmasıdır;
 ## Araştırma dayanakları
 
 Proaktif kontrol sözlüğü OWASP ASVS 5.0.0’ın güvenli uygulama gereksinimleri yaklaşımı, OpenSSF Scorecard’ın kaynak/build/bağımlılık/test/bakım kontrolleri ve SLSA’nın artımlı tedarik zinciri güvencesi çerçeveleriyle uyumludur. ULAK bu çerçevelerin resmi tarayıcısı olduğunu iddia etmez; yalnızca arşivden doğrulanabilir ön sinyaller üretir. Canlı paket ve açık bulgu araştırması için mevcut OSV, GitHub, npm, PyPI ve Stack Exchange entegrasyonları korunur.
+
+## Faz 1 güvenlik ve raporlama genişlemesi
+
+Faz 1, mevcut statik analiz akışını koruyarak dört dikey yetenek ekler: genişletilmiş secret scanning, SBOM/PURL üretimi, Docker/IaC/CI sinyal kontrolleri ve rapor dışa aktarımı. Her modül çalıştırma yapmadan kanıt üretir; dış OSV/registry sorgusu yalnızca daha sonraki onaylı canlı araştırma adımına hazırlanır.
+
+Proaktif denetim sonuçları önceki audit ile karşılaştırılır. Baseline farkı skor değişimini, regresyonları, iyileşmeleri ve yeni kontrol kartlarını içerir. Veritabanında mevcut audit, önceki audit ve fark JSON alanları ayrı tutulur; eski projelerde eksik alanlar geriye dönük güvenli varsayılanlarla açılır.
+
+Raporlama sunucu tarafında maskelenmiş yerel rapor ve audit verisinden SARIF 2.1.0, JSON ve Markdown üretir. İndirme endpoint’i proje sahipliği kontrolünden sonra çalışır; ham arşiv veya gizli değer dışa aktarılmaz. Arayüzde SBOM özeti, baseline sinyali ve üç çıktı düğmesi görünür.
+
+## Faz 2 ilk dilimi: derin statik analiz
+
+Faz 2’nin ilk dikey dilimi yeni bir `server/phase2.ts` modülüyle uygulanır. TypeScript compiler API yalnızca kaynak metnini parse eder; proje kodu veya bağımlılık script’i çalıştırılmaz. JavaScript/TypeScript için dinamik çağrı ve HTML sink yakınlığı, route tanımlarından API yüzeyi ve auth örüntüsü, PII anahtar/log bağlamı ayrı kanıt listeleri üretir.
+
+Sonuçlar mevcut LocalFinding yapısına eklenerek Bulgular ekranında aynı kanıt/güven diliyle gösterilir. API yüzeyi ve privacy sinyalleri raporda ayrıca saklanır; eski projelerde bu alanlar boş varsayılanla okunur. Bu sürüm gerçek veri akışı ispatı, gerçek coverage veya canlı OSV sonucu iddia etmez.
+
+## Faz 3 ilk dilimi: ekip akışı
+
+Faz 3’ün ilk teslimi, gerçek kullanıcı/ekip yetkilendirmesi eklenmeden proje sahibi oturumunda çalışan bulgu yaşam döngüsünü getirir. Her bulgu için durum ve kısa ekip notu `ulak_finding_states` tablosunda saklanır; UI değişiklikleri yalnızca mevcut proje sahibine ait kayıtlar üzerinden yapılır.
+
+Proaktif panel ayrıca kullanıcı eylemiyle indirilebilen sınırlı bir GitHub Actions CI şablonu sunar. Bu şablon otomatik olarak harici bir tarama veya canlı araştırma başlatmaz; kullanıcı bağlamında incelenip bağlanacak bir başlangıç dosyasıdır. Webhook imza doğrulaması, Git geçmişi diff’i ve planlı yeniden denetim sonraki Faz 3 adımlarıdır.
