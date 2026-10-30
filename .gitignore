@@ -4,5 +4,6 @@ dist-server/
 .env
 .env.*
 !.env.example
+.ulak-data/
 *.log
 .DS_Store

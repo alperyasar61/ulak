@@ -22,7 +22,8 @@
 
 ### 4. Rapor ve yönetişim deneyimi
 - Genel bakış, proje haritası, bulgular, proaktif denetim, canlı araştırma, yol haritası, takip sohbeti ve gizlilik sekmeleri vardır.
-- Kullanıcı veri akışını, dış aktarım kapsamını ve storage fiziksel silme sınırlamasını görür.
+- Kullanıcı veri akışını, dış aktarım kapsamını ve arşiv silme davranışını görür.
+- Arşivler yerel veri dizininde tutulur; proje silindiğinde nesne fiziksel olarak kaldırılır, veritabanı satırı denetim izi için pasif işaretlenir.
 - Özel Preview sürümünün gerçek kullanıcı kimliği/erişim denetimi içermediği açıkça belirtilir.
 
 ## Sonraki aşamalar

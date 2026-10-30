@@ -110,11 +110,23 @@ export function buildProactiveAudit(input: {
     },
     {
       id: "artifact-integrity", category: "Tedarik zinciri", title: "Kaynak ve build bütünlüğü sinyali",
-      status: checkStatus(!hasBinary && (hasCi || !hasDocker), hasDocker || hasBinary), severity: hasBinary ? "high" : "low",
-      summary: hasBinary ? "Arşivde kontrol edilmesi gereken ikili/derlenmiş artefakt bulundu." : hasCi ? "CI izi var; artefakt üretim hattı gözden geçirilebilir." : "İkili artefakt görülmedi, fakat build hattı arşivden doğrulanamadı.",
+      status: hasBinary ? "risk" : hasCi ? "pass" : "watch", severity: hasBinary ? "high" : "low",
+      summary: hasBinary
+        ? "Arşivde kontrol edilmesi gereken ikili/derlenmiş artefakt bulundu."
+        : hasCi
+          ? "İkili artefakt görünmedi ve CI izi var; build hattı gözden geçirilebilir."
+          : "İkili artefakt görünmedi, fakat build hattı arşivden doğrulanamadı.",
       why: "Derlenmiş dosyaların kaynağa göre izlenebilirliği ve build provenansı tedarik zinciri güveninin temelidir.",
-      evidence: hasBinary ? lowerNames.filter((name) => /\.(exe|dll|so|dylib|class|jar|bin|wasm)$/.test(name)).slice(0, 5) : (hasCi ? ["CI yapılandırması görüldü"] : []),
-      nextStep: hasBinary ? "İkilileri kaynaktan üretin; provenance ve imzalı release yaklaşımını değerlendirin." : "Build çıktısının hangi commit’ten üretildiğini belgeleyin.",
+      evidence: hasBinary
+        ? lowerNames.filter((name) => /\.(exe|dll|so|dylib|class|jar|bin|wasm)$/.test(name)).slice(0, 5)
+        : hasCi || hasDocker
+          ? lowerNames.filter((name) => /\.github\/workflows|gitlab-ci|jenkinsfile|circleci|dockerfile|docker-compose/.test(name)).slice(0, 3)
+          : [],
+      nextStep: hasBinary
+        ? "İkilileri kaynaktan üretin; provenance ve imzalı release yaklaşımını değerlendirin."
+        : hasCi
+          ? "Build çıktısının hangi commit’ten üretildiğini belgeleyin."
+          : "Build çıktısının hangi commit’ten üretildiğini belgeleyen bir CI workflow’u ekleyin.",
       basis: "SLSA — artifact integrity and provenance",
     },
     {

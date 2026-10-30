@@ -19,6 +19,8 @@ const MAX_TEXT_PER_FILE = 400 * 1024;
 const SKIP_DIRS = new Set([".git", "node_modules", "vendor", "dist", "build", "target", "coverage", "__pycache__", ".venv", "venv", "site-packages", ".next", "out"]);
 const TEXT_EXTENSIONS = new Set([".py", ".pyi", ".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".json", ".md", ".rst", ".txt", ".toml", ".yaml", ".yml", ".sh", ".html", ".css", ".scss", ".go", ".rs", ".java", ".kt", ".c", ".h", ".cpp", ".hpp", ".cs", ".sql", ".dockerfile", ".xml", ".ini", ".cfg", ".conf", ".lock", ".gradle", ".vue", ".svelte"]);
 const SECRET_FILENAMES = new Set([".env", ".env.local", ".env.production", "id_rsa", "id_ed25519", "credentials.json", "secrets.json"]);
+/** Import çözümlemesinde uzantısız eşleştirmeye katılan kaynak dosya türleri. */
+const SOURCE_EXTENSIONS = [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".py", ".pyi", ".go", ".rs", ".java", ".kt", ".rb", ".php", ".cs", ".vue", ".svelte"];
 
 export interface ManifestEntry { path: string; bytes: number; language: string; }
 export interface LocalFinding { id: string; area: string; severity: "high" | "medium" | "low"; title: string; detail: string; evidence: string[]; confidence: "medium" | "low"; }
@@ -166,24 +168,82 @@ function buildPurpose(files: Array<{ path: string; content: string }>) {
 }
 
 function collectRelationships(files: Array<{ path: string; content: string }>) {
-  const pathSet = new Set(files.map((file) => file.path));
-  const edges: Array<{ from: string; to: string; type: string }> = [];
   const limit = 80;
+  const edges: Array<{ from: string; to: string; type: string }> = [];
+  if (!files.length) return edges;
+
+  /**
+   * Referans çözümlemesi indeksler üzerinden yapılır. Böylece her referans için
+   * tüm dosya listesinin taranması (O(n·m)) yerine sabit sayıda sözlük araması yeterli olur.
+   */
+  const byPath = new Set<string>();
+  const byExtensionlessPath = new Map<string, string>();
+  const byDirectoryFirstFile = new Map<string, string>();
+  const byPythonSuffix = new Map<string, string>();
+
+  for (const { path: filePath } of files) {
+    byPath.add(filePath);
+    const extension = path.posix.extname(filePath).toLowerCase();
+    if (SOURCE_EXTENSIONS.includes(extension)) {
+      const key = filePath.slice(0, -extension.length);
+      if (!byExtensionlessPath.has(key)) byExtensionlessPath.set(key, filePath);
+    }
+    const segments = filePath.split("/");
+    for (let index = 0; index < segments.length - 1; index += 1) {
+      const directory = segments.slice(0, index + 1).join("/");
+      if (!byDirectoryFirstFile.has(directory)) byDirectoryFirstFile.set(directory, filePath);
+    }
+    if (filePath.endsWith(".py")) {
+      segments.forEach((_segment, index) => {
+        const suffix = segments.slice(index).join("/");
+        if (!byPythonSuffix.has(suffix)) byPythonSuffix.set(suffix, filePath);
+      });
+    }
+  }
+
+  const resolvedRefs = new Map<string, string | null>();
+
+  /** Aynı referans birden çok dosyada geçebilir; çözümleme bir kez yapılıp önbelleğe alınır. */
+  function resolveRelative(reference: string) {
+    const cached = resolvedRefs.get(reference);
+    if (cached !== undefined) return cached;
+
+    const extension = path.posix.extname(reference).toLowerCase();
+    // NodeNext/ESM yazımında import "./helper.js" gerçekte helper.ts dosyasını gösterir.
+    const base = extension ? reference.slice(0, -extension.length) : reference;
+    const target =
+      (byPath.has(reference) ? reference : null) ??
+      byExtensionlessPath.get(base) ??
+      byExtensionlessPath.get(`${base}/index`) ??
+      byDirectoryFirstFile.get(base) ??
+      null;
+
+    resolvedRefs.set(reference, target);
+    return target;
+  }
+
+  function resolvePythonModule(moduleName: string) {
+    return byPythonSuffix.get(`${moduleName.replace(/\./g, "/")}.py`) ?? null;
+  }
+
   for (const file of files) {
     if (edges.length >= limit) break;
+
     const references = new Set<string>();
     for (const match of file.content.matchAll(/(?:from\s*["']([^"']+)["']|import\s*["']([^"']+)["']|require\(\s*["']([^"']+)["']\s*\))/g)) {
-      const ref = match[1] ?? match[2] ?? match[3];
-      if (ref?.startsWith(".")) references.add(path.posix.normalize(path.posix.join(path.posix.dirname(file.path), ref)));
+      const reference = match[1] ?? match[2] ?? match[3];
+      if (reference?.startsWith(".")) {
+        references.add(path.posix.normalize(path.posix.join(path.posix.dirname(file.path), reference)));
+      }
     }
     for (const reference of references) {
-      const target = [...pathSet].find((candidate) => candidate === reference || candidate.startsWith(`${reference}.`) || candidate.startsWith(`${reference}/`));
+      const target = resolveRelative(reference);
       if (target && target !== file.path) edges.push({ from: file.path, to: target, type: "import" });
       if (edges.length >= limit) break;
     }
-    const pythonImports = file.content.matchAll(/^\s*from\s+([\w.]+)\s+import\s+/gm);
-    for (const match of pythonImports) {
-      const target = [...pathSet].find((candidate) => candidate.endsWith(`${match[1].replace(/\./g, "/")}.py`));
+
+    for (const match of file.content.matchAll(/^\s*from\s+([\w.]+)\s+import\s+/gm)) {
+      const target = resolvePythonModule(match[1]);
       if (target && target !== file.path) edges.push({ from: file.path, to: target, type: "import" });
       if (edges.length >= limit) break;
     }
