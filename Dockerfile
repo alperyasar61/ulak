@@ -17,6 +17,8 @@ RUN pnpm run build && pnpm prune --prod
 
 ENV NODE_ENV=production
 ENV PORT=3000
+# Konteyner içinde dışarı açılması gerekir; yerel kurulumda varsayılan 127.0.0.1'dir.
+ENV ULAK_HOST=0.0.0.0
 ENV ULAK_DATA_DIR=/data
 VOLUME ["/data"]
 EXPOSE 3000

@@ -96,10 +96,57 @@ interface RateLimitWindow {
 }
 
 const windows = new Map<string, RateLimitWindow>();
+const MAX_TRACKED_KEYS = 10_000;
 
-/** Basit bellekte tutulan hız sınırlayıcı. */
+/** Testlerde durumu sıfırlamak için. */
+export function resetRateLimits() {
+  windows.clear();
+}
+
+/**
+ * Sınırlayıcı anahtarı: oturum jetonu varsa onun özeti, yoksa istemci IP'si.
+ * Jetonun kendisi bellekte tutulmaz.
+ */
+function rateLimitKey(req: Request) {
+  const token = req.header("x-ulak-session") ?? "";
+  if (/^[a-f0-9]{64}$/i.test(token)) return `s:${createHash("sha256").update(token).digest("hex")}`;
+  return `i:${req.ip ?? req.socket?.remoteAddress ?? "unknown"}`;
+}
+
+function sweepExpired(now: number) {
+  for (const [key, window] of windows) {
+    if (window.resetAt <= now) windows.delete(key);
+  }
+}
+
+/**
+ * Bellekte tutulan kayan pencere hız sınırlayıcı. Aşıldığında `429` ve
+ * `Retry-After` döner; kabul edilen isteklerde `X-RateLimit-*` başlıkları yazılır.
+ */
 export function rateLimitMiddleware(limit: number, windowMs: number) {
   return (req: Request, res: Response, next: NextFunction) => {
+    const now = Date.now();
+    if (windows.size >= MAX_TRACKED_KEYS) sweepExpired(now);
+
+    const key = rateLimitKey(req);
+    const current = windows.get(key);
+    const window = current && current.resetAt > now ? current : { hits: 0, resetAt: now + windowMs };
+
+    if (window.hits >= limit) {
+      const retryAfter = Math.max(1, Math.ceil((window.resetAt - now) / 1000));
+      res.setHeader("Retry-After", String(retryAfter));
+      res.setHeader("X-RateLimit-Limit", String(limit));
+      res.setHeader("X-RateLimit-Remaining", "0");
+      res.setHeader("X-RateLimit-Reset", String(Math.ceil(window.resetAt / 1000)));
+      res.status(429).json({ error: `Çok fazla istek. ${retryAfter} saniye sonra tekrar deneyin.` });
+      return;
+    }
+
+    window.hits += 1;
+    windows.set(key, window);
+    res.setHeader("X-RateLimit-Limit", String(limit));
+    res.setHeader("X-RateLimit-Remaining", String(Math.max(0, limit - window.hits)));
+    res.setHeader("X-RateLimit-Reset", String(Math.ceil(window.resetAt / 1000)));
     next();
   };
 }

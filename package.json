@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.13.1",
+  "engines": {
+    "node": ">=22.13"
+  },
   "scripts": {
     "dev": "concurrently -k -n api,web -c cyan,magenta \"pnpm --filter @ulak/backend dev\" \"pnpm --filter @ulak/frontend dev\"",
     "build": "pnpm --filter @ulak/backend build && pnpm --filter @ulak/frontend build",

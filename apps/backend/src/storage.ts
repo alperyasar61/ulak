@@ -2,7 +2,21 @@ import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { repoRoot } from "./paths.js";
 
-const MAX_OBJECT_BYTES = 25 * 1024 * 1024;
+const DEFAULT_MAX_OBJECT_MB = 25;
+
+/**
+ * Yükleme boyutu sınırı (bayt). `ULAK_MAX_UPLOAD_MB` ile değiştirilebilir.
+ * Multer, GitHub indirmesi ve nesne deposu aynı sınırı kullanır.
+ */
+export function maxObjectBytes() {
+  const configured = Number(process.env.ULAK_MAX_UPLOAD_MB);
+  const mb = Number.isFinite(configured) && configured > 0 ? configured : DEFAULT_MAX_OBJECT_MB;
+  return Math.floor(mb * 1024 * 1024);
+}
+
+function oversizeMessage() {
+  return `Dosya boyutu ${Math.round(maxObjectBytes() / (1024 * 1024))} MB sınırını aşıyor.`;
+}
 
 /**
  * Yüklenen arşivlerin tutulduğu yerel dizin.
@@ -29,7 +43,7 @@ function objectPath(keyPath: string) {
 }
 
 export async function putObject(keyPath: string, bytes: Buffer, _contentType: string) {
-  if (bytes.byteLength > MAX_OBJECT_BYTES) throw new Error("Dosya boyutu 25 MB sınırını aşıyor.");
+  if (bytes.byteLength > maxObjectBytes()) throw new Error(oversizeMessage());
   const target = objectPath(keyPath);
   await mkdir(path.dirname(target), { recursive: true });
   await writeFile(target, bytes);
@@ -40,9 +54,9 @@ export async function getObject(keyPath: string) {
   const target = objectPath(keyPath);
   const info = await stat(target).catch(() => null);
   if (!info?.isFile()) throw new Error("Kaynak arşiv depoda bulunamadı.");
-  if (info.size > MAX_OBJECT_BYTES) throw new Error("Kaynak arşiv boyutu güvenlik sınırını aştı.");
+  if (info.size > maxObjectBytes()) throw new Error("Kaynak arşiv boyutu güvenlik sınırını aştı.");
   const buffer = await readFile(target);
-  if (buffer.byteLength > MAX_OBJECT_BYTES) throw new Error("Kaynak arşiv boyutu güvenlik sınırını aştı.");
+  if (buffer.byteLength > maxObjectBytes()) throw new Error("Kaynak arşiv boyutu güvenlik sınırını aştı.");
   return buffer;
 }
 

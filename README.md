@@ -6,7 +6,7 @@ ULAK, yazılım arşivini güvenli geçici alanda statik olarak inceler; proje h
 
 Arşiv yükleme, seçtiğiniz dosyayı ULAK sunucusuna ve projenin yönetilen nesne depolamasına gönderir. Bu içerik varsayılan olarak LLM’ye veya araştırma sağlayıcılarına gönderilmez. AI analizi başlatılırsa seçilmiş ve bilinen sırları maskelenmiş kaynak parçaları proje AI servisine iletilir. Canlı araştırma başlatılırsa onayladığınız paket adları/sürümler ve kısa teknik sorgular GitHub, OSV, Stack Exchange, npm ve PyPI’nin herkese açık API’lerine gider; dosyaların ham içeriği bu kaynaklara gönderilmez.
 
-Runtime storage API’si dosya silme sunmadığı için proje kaydını kaldırmak, yüklenen arşiv nesnesini fiziksel olarak silmez. Arşiv depolama davranışı uygulamada kullanıcıya açıkça anlatılır. Bu ilk sürüm özel ULAK Preview alanı içindir; çok kullanıcılı kamuya açık yayıma almadan önce gerçek kullanıcı kimliği/erişim denetimi eklenmelidir.
+`DELETE /api/projects/:id` projeyi yumuşak siler (kayıt `deleted_at` ile işaretlenir) **ve** yüklenen arşiv nesnesini diskten kaldırır. Nesne silinemezse istek yine başarılı döner, yanıttaki `warning` alanı nedeni bildirir. Bu ilk sürüm özel ULAK Preview alanı içindir; çok kullanıcılı kamuya açık yayıma almadan önce gerçek kullanıcı kimliği/erişim denetimi eklenmelidir.
 
 ## Proje yapısı (monorepo)
 
@@ -35,7 +35,7 @@ aranarak kök bulunur, böylece sunucu hem `src/` (tsx) hem `dist-server/src/` (
 
 ## Geliştirme
 
-- Node.js 20+ ve pnpm gerekir.
+- Node.js 22.13+ ve pnpm gerekir (`node:sqlite` bu sürümden itibaren bayraksız çalışır).
 - `.env.example` dosyasını `.env` olarak kopyalayın; `DATABASE_URL` ile platform AI/storage değişkenlerini kendi ortamınızdan doldurun. Bu değerler yalnızca sunucu tarafında okunur.
 - `pnpm install`
 - `pnpm dev` (Vite arayüzü `:3000`, API `:3001`; `/api` istekleri Vite proxy ile API’ye gider)

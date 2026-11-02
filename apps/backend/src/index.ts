@@ -2,15 +2,12 @@ import "./env.js";
 import express from "express";
 import multer from "multer";
 import path from "node:path";
-import fs from "node:fs/promises";
-import os from "node:os";
 import { randomUUID } from "node:crypto";
-import { fileURLToPath } from "node:url";
 import { ensureSchema, databaseKind, decodeJson, getProject, listProjects, adoptAllOwners, insertProject, updateProjectAnalysis, updateProjectResearch, updateProjectProactiveAudit, updateProjectReconstruction, addMessage, getMessages, softDeleteProject, listFindingStates, upsertFindingState, pingDatabase, insertAuditLog } from "./db.js";
 import { ownerHashForRequest, newSessionToken, rateLimitMiddleware, singleUserMode, SINGLE_USER_HASH } from "./security.js";
 import { analyzeArchive, extractArchiveEntry, type LocalReport, type ManifestEntry } from "./archive.js";
 import { buildBlueprint, mergeAiBlueprint, type ReconstructionBlueprint } from "./blueprint.js";
-import { getObject, putObject, deleteObject } from "./storage.js";
+import { getObject, putObject, deleteObject, maxObjectBytes } from "./storage.js";
 import { chatWithModel, invalidateModelCache, listAvailableModels, probeEvrenKey } from "./llm.js";
 import { adoptEnvKey, clearEvrenKey, evrenKeyStatus, recordVerification, resolveEvrenKey, setEvrenKey, validateEvrenKey } from "./credentials.js";
 import { buildResearchQueries, performResearch, type DependencyRef } from "./research.js";
@@ -36,15 +33,24 @@ const reService = createReverseEngineeringService(
 );
 const isDevApi = Boolean(process.env.ULAK_DEV_API_PORT);
 const port = Number(process.env.ULAK_DEV_API_PORT || process.env.PORT || 3000);
-// Limit kaldırıldı veya çok yüksek bir değere çekildi
-const maxUploadBytes = Infinity;
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: Infinity, files: 1, fields: 8 } });
+// Yerel tek kullanıcılı kurulum varsayılandır: yalnızca loopback'e bağlan.
+// Konteyner gibi dışarı açılması gereken ortamlar `ULAK_HOST=0.0.0.0` verir.
+const host = process.env.ULAK_HOST?.trim() || "127.0.0.1";
+const maxUploadBytes = maxObjectBytes();
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: maxUploadBytes, files: 1, fields: 8 } });
 app.disable("x-powered-by");
 app.use(express.json({ limit: "1mb" }));
 app.use((req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  res.setHeader("X-Frame-Options", "DENY");
+  // Ön yüzde inline script/style ve harici kaynak yok; React'in style={{}} kullanımı
+  // CSSOM üzerinden gittiği için 'unsafe-inline' gerekmez.
+  res.setHeader(
+    "Content-Security-Policy",
+    "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
+  );
   if (req.method === "OPTIONS") return res.sendStatus(204);
   next();
 });
@@ -59,7 +65,12 @@ function owner(req: express.Request) {
 function parseProjectJson<T>(value: unknown, fallback: T): T { return decodeJson<T>(value, fallback); }
 function jsonError(error: unknown) {
   if (error && typeof error === "object" && "status" in error && typeof error.status === "number") return { status: error.status, message: error instanceof Error ? error.message : "İstek reddedildi." };
-  if (error instanceof Error && /oversized|file too large/i.test(error.message)) return { status: 413, message: "Dosya 25 MB sınırını aşıyor." };
+  const code = error && typeof error === "object" && "code" in error ? String(error.code) : "";
+  if (code === "LIMIT_FILE_SIZE") return { status: 413, message: `Dosya ${Math.round(maxUploadBytes / (1024 * 1024))} MB sınırını aşıyor.` };
+  if (code === "LIMIT_UNEXPECTED_FILE") return { status: 400, message: "Beklenmeyen dosya alanı. Arşivi 'archive' alanıyla gönderin." };
+  if (code === "LIMIT_FILE_COUNT") return { status: 400, message: "Tek seferde yalnızca bir arşiv yüklenebilir." };
+  if (code === "LIMIT_FIELD_COUNT" || code === "LIMIT_FIELD_KEY" || code === "LIMIT_FIELD_VALUE") return { status: 400, message: "Form alanları izin verilen sınırı aşıyor." };
+  if (error instanceof Error && /oversized|file too large|sınırını aşıyor/i.test(error.message)) return { status: 413, message: `Dosya ${Math.round(maxUploadBytes / (1024 * 1024))} MB sınırını aşıyor.` };
   return { status: 400, message: error instanceof Error ? error.message.slice(0, 500) : "İşlem tamamlanamadı." };
 }
 
@@ -105,7 +116,7 @@ async function responseBuffer(response: Response, limit: number) {
     if (!final.hostname.endsWith("github.com")) throw new Error("GitHub arşivi beklenmeyen bir sunucuya yönlendirildi.");
   }
   const declared = Number(response.headers.get("content-length") ?? 0);
-  if (declared > limit) throw new Error("Kaynak arşiv 25 MB sınırını aşıyor.");
+  if (declared > limit) throw new Error(`Kaynak arşiv ${Math.round(limit / (1024 * 1024))} MB sınırını aşıyor.`);
   const reader = response.body.getReader();
   const chunks: Buffer[] = [];
   let total = 0;
@@ -353,9 +364,16 @@ app.get("/api/projects/:id/export/:format", async (req, res) => {
     const audit = parseProjectJson<ProactiveAudit | null>(row.proactive_audit_json, null);
     const diff = parseProjectJson<any>(row.proactive_diff_json, null);
     const format = String(req.params.format).toLowerCase();
-    const output = format === "json" ? renderJson({ name: row.name, sourceName: row.source_name }, report, audit, diff) : format === "markdown" || format === "md" ? renderMarkdown({ name: row.name, sourceName: row.source_name }, report, audit, diff) : format === "sarif" ? renderSarif(audit) : null;
-    if (!output) return res.status(400).json({ error: "Desteklenen formatlar: json, markdown, sarif." });
-    const extension = format === "sarif" ? "sarif" : format === "json" ? "json" : "md";
+    const exporters: Record<string, { render: () => string; extension: string }> = {
+      json: { render: () => renderJson({ name: row.name, sourceName: row.source_name }, report, audit, diff), extension: "json" },
+      markdown: { render: () => renderMarkdown({ name: row.name, sourceName: row.source_name }, report, audit, diff), extension: "md" },
+      md: { render: () => renderMarkdown({ name: row.name, sourceName: row.source_name }, report, audit, diff), extension: "md" },
+      sarif: { render: () => renderSarif(audit), extension: "sarif" },
+    };
+    const exporter = exporters[format];
+    if (!exporter) return res.status(400).json({ error: "Desteklenen formatlar: json, markdown, sarif." });
+    const output = exporter.render();
+    const extension = exporter.extension;
     res.setHeader("Content-Type", extension === "md" ? "text/markdown; charset=utf-8" : "application/json; charset=utf-8");
     res.setHeader("Content-Disposition", `attachment; filename="ulak-${row.id}.${extension}"`);
     await insertAuditLog({ ownerHash: owner(req), eventType: "report_export", projectId: row.id, details: { format }, ipAddress: req.ip ?? null });
@@ -568,7 +586,7 @@ ensureSchema().then(async () => {
       console.warn("ULAK owner adoption skipped:", error instanceof Error ? error.message : "unknown error");
     }
   }
-  app.listen(port, "0.0.0.0", () => console.log(`ULAK API listening on port ${port}`));
+  app.listen(port, host, () => console.log(`ULAK API listening on http://${host}:${port}`));
 }).catch((error) => {
   console.error("ULAK database initialization failed:", error instanceof Error ? error.message : "unknown error");
   process.exit(1);

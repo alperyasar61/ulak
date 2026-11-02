@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "main": "dist-server/src/index.js",
+  "engines": {
+    "node": ">=22.13"
+  },
   "scripts": {
     "dev": "cross-env ULAK_DEV_API_PORT=3001 tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json && node ../../scripts/copy-native.mjs",
