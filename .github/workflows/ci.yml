@@ -1,4 +1,6 @@
 name: CI
+permissions:
+  contents: read
 on:
   push:
     branches: [ master, main ]
@@ -22,6 +24,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Dependency security audit
+        run: pnpm audit --audit-level high
 
       - name: Type check
         run: pnpm typecheck

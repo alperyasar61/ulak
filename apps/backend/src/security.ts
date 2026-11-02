@@ -9,6 +9,7 @@ export function newSessionToken() {
 }
 
 let cachedMachineSecret: string | null = null;
+let cachedMachineSecretPersistent = false;
 
 /**
  * Makineye özgü sır. Yalnızca yerel şifreleme anahtarı türetmek için kullanılır
@@ -23,6 +24,7 @@ export function machineSecret() {
       const existing = readFileSync(file, "utf8").trim();
       if (/^[a-f0-9]{64}$/i.test(existing)) {
         cachedMachineSecret = existing;
+        cachedMachineSecretPersistent = true;
         return existing;
       }
     }
@@ -30,11 +32,19 @@ export function machineSecret() {
     const created = randomBytes(32).toString("hex");
     writeFileSync(file, created, { mode: 0o600 });
     cachedMachineSecret = created;
+    cachedMachineSecretPersistent = true;
     return created;
   } catch {
     // Yazma izni yoksa süreç ömrü boyunca geçerli geçici bir sır kullanılır.
     cachedMachineSecret = randomBytes(32).toString("hex");
     return cachedMachineSecret;
+  }
+}
+
+export function assertPersistentMachineSecret() {
+  machineSecret();
+  if (!cachedMachineSecretPersistent) {
+    throw new Error("API sırları kalıcı olarak şifrelenemiyor; ULAK veri klasörüne yazma iznini kontrol edin.");
   }
 }
 

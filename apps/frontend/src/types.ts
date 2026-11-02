@@ -4,6 +4,16 @@ export interface SbomComponent { name: string; version: string; ecosystem: Depen
 export interface ApiSurface { method: string; path: string; file: string; authLikely: boolean; }
 export interface PrivacySignal { category: string; file: string; evidence: string; }
 export interface LocalFinding { id: string; area: string; severity: "high" | "medium" | "low"; title: string; detail: string; evidence: string[]; confidence: "medium" | "low"; }
+export interface SecurityLearningNote {
+  id: string;
+  title: string;
+  recommendation: string;
+  scansSeen: number;
+  source?: "builtin" | "shared";
+  category?: "security" | "architecture" | "testing" | "performance" | "other";
+  contributions?: number;
+}
+export type SharedKnowledgeCategory = NonNullable<SecurityLearningNote["category"]>;
 export interface LocalReport {
   projectPurpose: string;
   summary: string;
@@ -19,6 +29,7 @@ export interface LocalReport {
   apiSurface: ApiSurface[];
   privacySignals: PrivacySignal[];
   findings: LocalFinding[];
+  learningNotes?: SecurityLearningNote[];
   secretFileCount: number;
   analyzedAt: string;
 }
@@ -67,6 +78,61 @@ export interface Project {
   status: string;
   createdAt: string;
   updatedAt: string;
+}
+export type ApiMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "HEAD" | "OPTIONS";
+export type ApiAuth =
+  | { type: "none" | "inherit" }
+  | { type: "bearer"; token: string }
+  | { type: "basic"; username: string; password: string }
+  | { type: "api-key"; key: string; value: string; in: "header" | "query" };
+export interface ApiVariable { key: string; value: string; isSecret: boolean; }
+export interface ApiHeader { key: string; value: string; enabled: boolean; }
+export interface ApiAssertion {
+  id: string;
+  name: string;
+  target: "status" | "json" | "header" | "body";
+  operator: "equals" | "contains" | "exists";
+  path: string;
+  expected: string;
+  isSecret: boolean;
+  enabled: boolean;
+}
+export interface ApiSavedRequest {
+  id: string;
+  name: string;
+  folder: string;
+  method: ApiMethod;
+  url: string;
+  headers: ApiHeader[];
+  body: string;
+  auth: ApiAuth;
+  assertions: ApiAssertion[];
+  captureTokenPath: string;
+  captureTokenVariable: string;
+}
+export interface ApiWorkspace {
+  id: string;
+  name: string;
+  category: string;
+  proxyEnabled: boolean;
+  proxyUrl: string;
+  proxyUrlConfigured: boolean;
+  variables: ApiVariable[];
+  auth: ApiAuth;
+  requests: ApiSavedRequest[];
+  createdAt: string;
+  updatedAt: string;
+}
+export interface ApiResponse {
+  status: number;
+  statusText: string;
+  ok: boolean;
+  durationMs: number;
+  headers: Record<string, string>;
+  body: unknown;
+  isJson: boolean;
+  capturedVariable: string | null;
+  assertions: Array<{ id: string; name: string; passed: boolean; message: string }>;
 }
 export interface ModelChoice { id: string; name: string; description: string; cost: string; provider: string; }
 export interface EvrenKeyStatus { configured: boolean; source: "memory" | "env" | null; removable: boolean; verified?: boolean; modelCount?: number; checkedAt?: string; lastError?: string; }

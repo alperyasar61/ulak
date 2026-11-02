@@ -34,10 +34,20 @@ export function analyzePhase2(files: TextFile[]): Phase2Analysis {
   const apiSurface: ApiSurface[] = [];
   const privacySignals: PrivacySignal[] = [];
   const sensitiveRouteWithoutAuth: string[] = [];
+  const insecureTlsEvidence: string[] = [];
+  const permissiveCorsEvidence: string[] = [];
   const piiPattern = /(?:email|e-mail|telefon|phone|mobile|address|adres|tckn|tc[_-]?no|ssn|health|medical|saglik|doğum|birth|dateOfBirth)/i;
 
   for (const file of files) {
     if (/\.(tsx?|jsx?)$/.test(file.path)) findings.push(...analyzeTypeScript(file));
+    for (const [index, line] of file.content.split(/\r?\n/).entries()) {
+      if (/(?:NODE_TLS_REJECT_UNAUTHORIZED\s*=\s*["']?0\b|rejectUnauthorized\s*:\s*false|verify\s*=\s*False)/i.test(line) && insecureTlsEvidence.length < 8) {
+        insecureTlsEvidence.push(`${file.path}:${index + 1} (TLS doğrulama ayarı)`);
+      }
+      if (/(?:origin\s*:\s*["']\*["']|Access-Control-Allow-Origin["']?\s*[,=:]\s*["']\*["'])/i.test(line) && permissiveCorsEvidence.length < 8) {
+        permissiveCorsEvidence.push(`${file.path}:${index + 1} (geniş CORS kuralı)`);
+      }
+    }
     const authLikely = /(?:requireAuth|isAuthenticated|authenticate|authorization|bearer|jwt|session|middleware|currentUser)/i.test(file.content);
     for (const match of file.content.matchAll(/(?:app|router|server)\.(get|post|put|patch|delete)\s*\(\s*["'`]([^"'`]+)["'`]|@(?:app|router)\.(get|post|put|patch|delete)\s*\(\s*["'`]([^"'`]+)["'`]/gi)) {
       const method = (match[1] ?? match[3] ?? "get").toUpperCase();
@@ -51,6 +61,8 @@ export function analyzePhase2(files: TextFile[]): Phase2Analysis {
     }
     if (/(?:console\.(?:log|error|warn)|logger\.(?:info|error|warn)|print\s*\()/i.test(file.content) && piiPattern.test(file.content)) privacySignals.push({ category: "Loglarda PII riski", file: file.path, evidence: `${file.path} (log ve hassas alan sinyali; değer gösterilmedi)` });
   }
+  if (insecureTlsEvidence.length) findings.push({ id: "insecure-tls-verification", area: "Güvenlik", severity: "high", title: "TLS sertifika doğrulaması kapatılmış olabilir", detail: "Statik metin taraması TLS doğrulamasını devre dışı bırakan bir ayar buldu. Kullanım bağlamı doğrulanmalı; üretimde sertifika doğrulamasını açık tutun.", evidence: insecureTlsEvidence, confidence: "low" });
+  if (permissiveCorsEvidence.length) findings.push({ id: "permissive-cors", area: "Güvenlik", severity: "medium", title: "CORS tüm kaynaklara açık olabilir", detail: "Geniş CORS kuralı tarayıcıların farklı kaynaklardan istekte bulunmasına izin verebilir. Gerekli origin listesi ve kimlik bilgisi ayarları ayrıca doğrulanmalı.", evidence: permissiveCorsEvidence, confidence: "low" });
   if (sensitiveRouteWithoutAuth.length) findings.push({ id: "api-auth-review", area: "API Yetkilendirme", severity: "medium", title: "Hassas API route’ları için yetkilendirme incelemesi gerekli", detail: "Route ve authentication örüntüsü aynı dosyada birlikte görülmedi. Statik analiz middleware’in gerçekten uygulandığını kanıtlamaz.", evidence: sensitiveRouteWithoutAuth.slice(0, 8), confidence: "low" });
   if (privacySignals.length) findings.push({ id: "pii-data-signal", area: "Gizlilik", severity: "medium", title: "Kişisel veri veya hassas alan sinyali bulundu", detail: "Alan adları ve log bağlamı PII saklama/aktarımı ihtimalini gösteriyor. Ham değerler rapora alınmadı; retention, maskeleme ve erişim kontrolü ayrıca doğrulanmalı.", evidence: privacySignals.slice(0, 8).map((signal) => signal.evidence), confidence: "low" });
   return { findings: findings.slice(0, 40), apiSurface: apiSurface.slice(0, 120), privacySignals: privacySignals.slice(0, 80) };

@@ -4,12 +4,15 @@ import {
   CircleHelp, Clock3, CloudUpload, Code2, Cpu, Database, ExternalLink, FileArchive, FileCode2,
   FileText, FolderKanban, Github, Globe2, KeyRound, Layers3, LoaderCircle, LockKeyhole, MessageSquare,
   Network, PlugZap, Radar, Search, Send, ShieldAlert, ShieldCheck, Sparkles, Trash2, TriangleAlert,
-  WandSparkles, X,
+  Upload, WandSparkles, X,
 } from "lucide-react";
 import { api, sessionToken } from "./api";
-import type { AiFinding, ChatMessage, EvrenKeyStatus, FindingStateStatus, ModelChoice, Project } from "./types";
+import { ApiWorkspacePanel } from "./ApiWorkspacePanel";
+import { buildApiWorkspaceMarkdown, buildProjectScreenMarkdown, downloadMarkdown, markdownFilename } from "./markdown-export";
+import type { AiFinding, ApiResponse, ApiWorkspace, ChatMessage, EvrenKeyStatus, FindingStateStatus, ModelChoice, Project, SharedKnowledgeCategory } from "./types";
 
 type Tab = "overview" | "architecture" | "findings" | "proactive" | "research" | "roadmap" | "conversation" | "privacy" | "reverse";
+type LearningContext = { kind: "project" | "api"; id: string };
 
 const navigation: Array<{ id: Tab; label: string; icon: any }> = [
   { id: "overview", label: "Genel bakış", icon: Activity },
@@ -66,7 +69,11 @@ function sourceHost(url: string) {
 
 export default function App() {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [apiWorkspaces, setApiWorkspaces] = useState<ApiWorkspace[]>([]);
   const [activeId, setActiveId] = useState("");
+  const [activeApiWorkspaceId, setActiveApiWorkspaceId] = useState("");
+  const [apiResponse, setApiResponse] = useState<ApiResponse | null>(null);
+  const [apiBusy, setApiBusy] = useState(false);
   const [models, setModels] = useState<ModelChoice[]>([]);
   const [modelsError, setModelsError] = useState("");
   const [evrenStatus, setEvrenStatus] = useState<EvrenKeyStatus>({ configured: false, source: null, removable: false });
@@ -79,33 +86,87 @@ export default function App() {
   const [booting, setBooting] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [creationKind, setCreationKind] = useState<"code" | "api">("code");
+  const [projectUploadError, setProjectUploadError] = useState("");
   const [howOpen, setHowOpen] = useState(false);
+  const [knowledgeContext, setKnowledgeContext] = useState<LearningContext | null>(null);
+  const [knowledgeCategory, setKnowledgeCategory] = useState<SharedKnowledgeCategory>("architecture");
+  const [knowledgeTitle, setKnowledgeTitle] = useState("");
+  const [knowledgeRecommendation, setKnowledgeRecommendation] = useState("");
+  const [knowledgeConsent, setKnowledgeConsent] = useState(false);
+  const [knowledgeBusy, setKnowledgeBusy] = useState(false);
+  const [knowledgeError, setKnowledgeError] = useState("");
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [repoUrl, setRepoUrl] = useState("");
   const [projectName, setProjectName] = useState("");
+  const [serviceCategory, setServiceCategory] = useState("");
+  const [postmanFile, setPostmanFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [busy, setBusy] = useState<"upload" | "ai" | "research" | "audit" | "chat" | "delete" | "deep" | "dossier" | "reconstruct" | "" >("");
   const [toast, setToast] = useState("");
   const [toastKind, setToastKind] = useState<"info" | "error">("info");
   const notify = (message: string, kind: "info" | "error" = "info") => { setToastKind(kind); setToast(message); };
+  function promptForSharedLearning(context: LearningContext) {
+    const key = `${context.kind}:${context.id}`;
+    if (promptedKnowledgeContexts.current.has(key)) return;
+    promptedKnowledgeContexts.current.add(key);
+    setKnowledgeContext(context);
+    setKnowledgeCategory(context.kind === "api" ? "testing" : "architecture");
+    setKnowledgeTitle("");
+    setKnowledgeRecommendation("");
+    setKnowledgeConsent(false);
+    setKnowledgeError("");
+  }
+  async function submitSharedLearningNote(event: FormEvent) {
+    event.preventDefault();
+    if (!knowledgeContext || !knowledgeConsent) return;
+    setKnowledgeBusy(true);
+    setKnowledgeError("");
+    try {
+      const context = knowledgeContext.kind === "project"
+        ? { projectId: knowledgeContext.id }
+        : { workspaceId: knowledgeContext.id };
+      const result = await api.addSharedLearningNote(context, {
+        category: knowledgeCategory,
+        title: knowledgeTitle,
+        recommendation: knowledgeRecommendation,
+      });
+      setProjects((current) => current.map((item) => ({
+        ...item,
+        localReport: { ...item.localReport, learningNotes: result.learningNotes },
+      })));
+      setKnowledgeContext(null);
+      notify("Genel öğrenme notu yalnızca bu ULAK kurulumunun ortak bilgi alanına kaydedildi.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Öğrenme notu kaydedilemedi.";
+      setKnowledgeError(message);
+      notify(message, "error");
+    } finally {
+      setKnowledgeBusy(false);
+    }
+  }
   const [aiConsent, setAiConsent] = useState(false);
   const [researchConsent, setResearchConsent] = useState(false);
   const [queries, setQueries] = useState<string[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [question, setQuestion] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const postmanInputRef = useRef<HTMLInputElement>(null);
+  const promptedKnowledgeContexts = useRef(new Set<string>());
 
   const project = projects.find((item) => item.id === activeId) ?? null;
+  const apiWorkspace = apiWorkspaces.find((item) => item.id === activeApiWorkspaceId) ?? null;
   const localReport = project?.localReport ?? null;
 
   useEffect(() => {
     let mounted = true;
-    Promise.allSettled([api.listProjects(), api.getModels(), api.getEvrenStatus()]).then(([projectResult, modelResult, evrenResult]) => {
+    Promise.allSettled([api.listProjects(), api.listApiWorkspaces(), api.getModels(), api.getEvrenStatus()]).then(([projectResult, apiWorkspaceResult, modelResult, evrenResult]) => {
       if (!mounted) return;
       if (projectResult.status === "fulfilled") {
         setProjects(projectResult.value.projects);
         if (projectResult.value.projects.length) setActiveId(projectResult.value.projects[0].id);
       } else setLoadError(projectResult.reason instanceof Error ? projectResult.reason.message : "ULAK servisine bağlanılamadı.");
+      if (apiWorkspaceResult.status === "fulfilled") setApiWorkspaces(apiWorkspaceResult.value.workspaces);
       if (modelResult.status === "fulfilled") {
         setModels(modelResult.value.models);
         const preferred = modelResult.value.models.find((model) => /gpt-6-luna/i.test(model.id)) ?? modelResult.value.models[0];
@@ -211,6 +272,20 @@ export default function App() {
     setActiveId(next.id);
   }
 
+  async function clearSecurityLearningNotes() {
+    if (!window.confirm("ULAK’ın tüm anonimleştirilmiş ortak güvenlik notları silinsin mi?")) return;
+    try {
+      await api.clearSecurityLearningNotes();
+      setProjects((current) => current.map((item) => ({
+        ...item,
+        localReport: { ...item.localReport, learningNotes: [] },
+      })));
+      notify("Anonimleştirilmiş ortak notlar silindi.");
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "Notlar silinemedi.", "error");
+    }
+  }
+
   function handleDrop(event: DragEvent<HTMLDivElement>) {
     event.preventDefault();
     setIsDragging(false);
@@ -218,9 +293,36 @@ export default function App() {
     if (candidate) chooseFile(candidate);
   }
 
+  function openCreationDialog(kind: "code" | "api") {
+    setCreationKind(kind);
+    setProjectUploadError("");
+    setUploadFile(null);
+    setRepoUrl("");
+    setProjectName("");
+    setServiceCategory("");
+    setPostmanFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (postmanInputRef.current) postmanInputRef.current.value = "";
+    setUploadOpen(true);
+  }
+
+  function changeCreationKind(kind: "code" | "api") {
+    if (kind === creationKind) return;
+    setCreationKind(kind);
+    setProjectUploadError("");
+    setUploadFile(null);
+    setRepoUrl("");
+    setProjectName("");
+    setServiceCategory("");
+    setPostmanFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (postmanInputRef.current) postmanInputRef.current.value = "";
+  }
+
   function chooseFile(file: File) {
+    setProjectUploadError("");
     if (!/\.(7z|zip|tar|tgz|tar\.gz)$/i.test(file.name)) {
-      setToast(".7z, .zip, .tar veya .tar.gz arşivi seçin.");
+      notify(".7z, .zip, .tar veya .tar.gz arşivi seçin.", "error");
       return;
     }
     setUploadFile(file);
@@ -230,11 +332,51 @@ export default function App() {
 
   async function submitProject(event: FormEvent) {
     event.preventDefault();
+    if (creationKind === "api") {
+      if (!projectName.trim() && !postmanFile) {
+        notify("API çalışma alanına bir ad verin veya Postman koleksiyonu seçin.", "error");
+        return;
+      }
+      setBusy("upload");
+      try {
+        let result: { workspace: ApiWorkspace };
+        if (postmanFile) {
+          if (postmanFile.size > 1_000_000) throw new Error("Postman koleksiyon dosyası 1 MB sınırını aşıyor.");
+          const collection = JSON.parse(await postmanFile.text()) as unknown;
+          result = await api.importPostmanCollection(projectName.trim(), serviceCategory.trim(), collection);
+        } else {
+          result = await api.createApiWorkspace({
+            name: projectName.trim(),
+            category: serviceCategory.trim(),
+            proxyEnabled: false,
+            proxyUrl: "",
+            proxyUrlConfigured: false,
+            variables: [],
+            auth: { type: "none" },
+            requests: [],
+          });
+        }
+        setApiWorkspaces((current) => [result.workspace, ...current.filter((item) => item.id !== result.workspace.id)]);
+        setActiveId("");
+        setActiveApiWorkspaceId(result.workspace.id);
+        setApiResponse(null);
+        setProjectName("");
+        setServiceCategory("");
+        setPostmanFile(null);
+        setUploadOpen(false);
+        setToast(postmanFile ? `${result.workspace.requests.length} Postman isteği içe aktarıldı.` : "API çalışma alanı oluşturuldu; şimdi istek ekleyebilirsiniz.");
+        if (postmanInputRef.current) postmanInputRef.current.value = "";
+      } catch (error) {
+        notify(error instanceof Error ? error.message : "API çalışma alanı oluşturulamadı.", "error");
+      } finally { setBusy(""); }
+      return;
+    }
     if (!uploadFile && !repoUrl.trim()) {
-      setToast("Devam etmek için arşiv seçin veya herkese açık depo bağlantısı yazın.");
+      notify("Devam etmek için arşiv seçin veya herkese açık depo bağlantısı yazın.", "error");
       return;
     }
     setBusy("upload");
+    setProjectUploadError("");
     setLoadError("");
     try {
       const form = new FormData();
@@ -243,15 +385,117 @@ export default function App() {
       if (projectName.trim()) form.set("projectName", projectName.trim());
       const result = await api.createProject(form);
       upsertProject(result.project);
+      setActiveApiWorkspaceId("");
       setUploadFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
       setRepoUrl("");
       setProjectName("");
       setUploadOpen(false);
       setTab("overview");
+      promptForSharedLearning({ kind: "project", id: result.project.id });
       setToast("Proje yerel olarak haritalandı. AI ve canlı araştırma ayrı onay bekliyor.");
     } catch (error) {
-      setToast(error instanceof Error ? error.message : "Proje incelenemedi.");
+      const message = error instanceof Error ? error.message : "Proje incelenemedi.";
+      setProjectUploadError(message);
+      notify(message, "error");
     } finally { setBusy(""); }
+  }
+
+  function workspacePayload(workspace: ApiWorkspace) {
+    const { id: _id, createdAt: _createdAt, updatedAt: _updatedAt, ...payload } = workspace;
+    return payload;
+  }
+
+  async function saveApiWorkspace() {
+    if (!apiWorkspace) return;
+    setApiBusy(true);
+    try {
+      const result = await api.saveApiWorkspace(apiWorkspace.id, workspacePayload(apiWorkspace));
+      setApiWorkspaces((current) => current.map((item) => item.id === result.workspace.id ? result.workspace : item));
+      notify("API çalışma alanı kaydedildi. Gizli değerler şifreli saklanır.");
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "API çalışma alanı kaydedilemedi.", "error");
+    } finally { setApiBusy(false); }
+  }
+
+  async function sendApiRequest(requestId: string) {
+    if (!apiWorkspace) return;
+    setApiBusy(true);
+    setApiResponse(null);
+    try {
+      await api.saveApiWorkspace(apiWorkspace.id, workspacePayload(apiWorkspace));
+      const result = await api.sendApiRequest(apiWorkspace.id, requestId);
+      setApiResponse(result.result);
+      promptForSharedLearning({ kind: "api", id: apiWorkspace.id });
+      if (result.result.capturedVariable) {
+        setApiWorkspaces((current) => current.map((item) => item.id !== apiWorkspace.id ? item : {
+          ...item,
+          variables: item.variables.some((variable) => variable.key === result.result.capturedVariable)
+            ? item.variables.map((variable) => variable.key === result.result.capturedVariable ? { ...variable, value: "", isSecret: true } : variable)
+            : [...item.variables, { key: result.result.capturedVariable!, value: "", isSecret: true }],
+        }));
+        notify(`Yanıt alındı; ${result.result.status} · ${result.result.capturedVariable} tokenı şifreli kaydedildi.`);
+      } else {
+        notify(`Yanıt alındı; HTTP ${result.result.status} · ${result.result.durationMs} ms.`);
+      }
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "API isteği gönderilemedi.", "error");
+    } finally { setApiBusy(false); }
+  }
+
+  async function removeApiWorkspace() {
+    if (!apiWorkspace || !window.confirm(`“${apiWorkspace.name}” çalışma alanı, istekleri, şifreli sırları ve API işlem kayıtları kalıcı silinsin mi? Ortak öğrenme notları korunur.`)) return;
+    try {
+      await api.deleteApiWorkspace(apiWorkspace.id);
+      const remaining = apiWorkspaces.filter((item) => item.id !== apiWorkspace.id);
+      setApiWorkspaces(remaining);
+      setActiveApiWorkspaceId("");
+      setActiveId(projects[0]?.id ?? "");
+      setApiResponse(null);
+      notify("API çalışma alanı ve şifreli tokenları silindi.");
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "API çalışma alanı silinemedi.", "error");
+    }
+  }
+
+  async function exportApiWorkspace() {
+    if (!apiWorkspace) return;
+    try {
+      const response = await fetch(`/api/api-workspaces/${apiWorkspace.id}/export`, { headers: { "x-ulak-session": sessionToken() }, cache: "no-store" });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(typeof data.error === "string" ? data.error : `Postman dışa aktarılamadı (${response.status}).`);
+      }
+      const blob = await response.blob();
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `${apiWorkspace.name.replace(/[^A-Za-z0-9._-]+/g, "-")}.postman_collection.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(link.href);
+      notify("Gizli tokenları içermeyen Postman koleksiyonu indirildi.");
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "Postman dışa aktarılamadı.", "error");
+    }
+  }
+
+  function exportApiWorkspaceMarkdown() {
+    if (!apiWorkspace) return;
+    downloadMarkdown(
+      markdownFilename(apiWorkspace.name, "api-ai-baglam"),
+      buildApiWorkspaceMarkdown(apiWorkspace, apiResponse),
+    );
+    notify("Sırlar ve yanıt gövdesi dışarıda bırakılarak AI bağlamı indirildi.");
+  }
+
+  function exportCurrentScreen() {
+    if (!project) return;
+    downloadMarkdown(
+      markdownFilename(project.name, tab),
+      buildProjectScreenMarkdown(project, tab, chatMessages),
+    );
+    notify(`${navigation.find((item) => item.id === tab)?.label ?? "Gizlilik"} ekranı Markdown olarak indirildi.`);
   }
 
   async function runAI() {
@@ -320,7 +564,7 @@ export default function App() {
   }
 
   async function removeProject() {
-    if (!project || !window.confirm("Bu proje kaydını ULAK listesinden kaldırayım mı? Nesne depolamadaki arşiv fiziksel olarak silinemez.")) return;
+    if (!project || !window.confirm("Bu projenin kaydı, yüklenen arşivi ve projeye bağlı inceleme verileri kalıcı olarak silinsin mi? Ortak, genel güvenlik öğrenme notları korunur.")) return;
     setBusy("delete");
     try {
       const result = await api.deleteProject(project.id);
@@ -399,16 +643,26 @@ export default function App() {
           <div><div className="brand-name">ULAK<span>↗</span></div><div className="brand-subtitle">PROJE İSTİHBARATI</div></div>
         </div>
         <div className="workspace-label"><span>ÇALIŞMA ALANI</span><span className="live-pip" /> ÖZEL</div>
-        <button className="new-project-button" onClick={() => setUploadOpen(true)}><CloudUpload size={16} /> Yeni proje ekle <span>+</span></button>
+        <button className="new-project-button" onClick={() => openCreationDialog("code")}><CloudUpload size={16} /> Yeni proje ekle <span>+</span></button>
         <div className="sidebar-section-title">PROJELER <span>{projects.length.toString().padStart(2, "0")}</span></div>
         <div className="project-list">
           {projects.length ? projects.map((item) => (
-            <button key={item.id} className={"project-nav-item " + (activeId === item.id ? "active" : "")} onClick={() => { setActiveId(item.id); setTab("overview"); }}>
+            <button key={item.id} className={"project-nav-item " + (activeId === item.id && !activeApiWorkspaceId ? "active" : "")} onClick={() => { setActiveId(item.id); setActiveApiWorkspaceId(""); setApiResponse(null); setTab("overview"); }}>
               <span className="project-nav-icon">{item.sourceKind === "github" ? <Github size={16} /> : <FileArchive size={16} />}</span>
               <span className="project-nav-copy"><strong>{item.name}</strong><small>{item.localReport.stack[0]?.name ?? "Proje analizi"}</small></span>
               <ChevronRight size={14} className="project-nav-chevron" />
             </button>
           )) : <div className="sidebar-empty">Henüz proje yok.<br />İlk arşivi ekleyin.</div>}
+        </div>
+        <div className="sidebar-section-title">API TEST ALANLARI <span>{apiWorkspaces.length.toString().padStart(2, "0")}</span></div>
+        <div className="project-list">
+          {apiWorkspaces.length ? apiWorkspaces.map((item) => (
+            <button key={item.id} className={"project-nav-item " + (activeApiWorkspaceId === item.id ? "active" : "")} onClick={() => { setActiveId(""); setActiveApiWorkspaceId(item.id); setApiResponse(null); }}>
+              <span className="project-nav-icon"><PlugZap size={16} /></span>
+              <span className="project-nav-copy"><strong>{item.name}</strong><small>{item.category || "API servisi"} · {item.requests.length} istek</small></span>
+              <ChevronRight size={14} className="project-nav-chevron" />
+            </button>
+          )) : <div className="sidebar-empty">Henüz API alanı yok.</div>}
         </div>
         <div className="sidebar-bottom">
           <div className="privacy-mini"><ShieldCheck size={16} /><div><strong>Önce mahremiyet</strong><small>AI ve araştırma kapalı başlar.</small></div></div>
@@ -419,7 +673,7 @@ export default function App() {
 
       <main className="main-shell">
         <header className="topbar">
-          <div className="breadcrumbs"><span>ULAK</span><span className="crumb-slash">/</span><span>{tab === "overview" ? "Çalışma masası" : navigation.find((item) => item.id === tab)?.label ?? "Veri ve gizlilik"}</span></div>
+          <div className="breadcrumbs"><span>ULAK</span><span className="crumb-slash">/</span><span>{apiWorkspace ? "API test alanı" : tab === "overview" ? "Çalışma masası" : navigation.find((item) => item.id === tab)?.label ?? "Veri ve gizlilik"}</span></div>
           <div className="topbar-right"><span className="local-only"><span /> İŞLEMLER KONTROLLÜ</span><button className={"evren-button " + (evrenStatus.configured ? "connected" : "")} onClick={() => { setEvrenOpen(true); setEvrenError(""); }}><Cpu size={15} /><span>EVREN</span><i className={"evren-dot " + (evrenStatus.configured ? "on" : "off")} /></button><button className="help-button" onClick={() => setHowOpen(true)}><CircleHelp size={17} /><span>Nasıl çalışır?</span></button><div className="avatar">U</div></div>
         </header>
 
@@ -441,13 +695,25 @@ export default function App() {
           </button>
         </div>
 
-        {!project ? (
+        {!project && apiWorkspace ? (
+          <ApiWorkspacePanel
+            workspace={apiWorkspace}
+            response={apiResponse}
+            busy={apiBusy}
+            onChange={(next) => setApiWorkspaces((current) => current.map((item) => item.id === next.id ? next : item))}
+            onSave={saveApiWorkspace}
+            onSend={sendApiRequest}
+            onDelete={removeApiWorkspace}
+            onExport={exportApiWorkspace}
+            onExportMarkdown={exportApiWorkspaceMarkdown}
+          />
+        ) : !project ? (
           <section className="empty-state-wrap">
             <div className="empty-orbit"><div className="orbit-ring orbit-ring-one" /><div className="orbit-ring orbit-ring-two" /><div className="orbit-dot orbit-dot-one" /><div className="orbit-dot orbit-dot-two" /><div className="orbit-core"><img src="/logo-mark.png" alt="" /></div></div>
             <div className="empty-eyebrow"><span className="signal-line" /> KODU ÖNCE ANLAR. SONRA ARAŞTIRIR.</div>
             <h1>Tanımadığın bir kod tabanını<br /><em>yarım saatte</em> anla.</h1>
             <p className="empty-description">ULAK bir arşivi ya da GitHub deposunu alır; ne işe yaradığını, hangi teknolojilerle yazıldığını, nereden başlayacağını ve nerede risk olduğunu tek ekranda gösterir. AI ve canlı araştırma yalnızca sen açıkça başlattığında devreye girer.</p>
-            <button className="primary-button empty-cta" onClick={() => setUploadOpen(true)}><CloudUpload size={18} /> Proje arşivi yükle <ArrowRight size={16} /></button>
+            <button className="primary-button empty-cta" onClick={() => openCreationDialog("code")}><CloudUpload size={18} /> Yeni proje ekle <ArrowRight size={16} /></button>
             <button className="empty-secondary" onClick={() => setHowOpen(true)}><CircleHelp size={15} /> Neler yapabilirim?</button>
             <div className="empty-trust"><span><ShieldCheck size={14} /> Kodun çalıştırılmaz</span><span><LockKeyhole size={14} /> AI aktarımı izne bağlı</span><span><Globe2 size={14} /> Kaynaklar bağlantılı</span></div>
             <div className="empty-how"><div><span>01</span><strong>İçeriği anlar</strong><small>Dosya ağacı · teknoloji · bileşenler</small></div><ArrowRight size={16} /><div><span>02</span><strong>İzinle derinleşir</strong><small>AI sentezi · güncel kaynaklar</small></div><ArrowRight size={16} /><div><span>03</span><strong>Yol önerir</strong><small>Kanıt · etki · uygulanabilirlik</small></div></div>
@@ -456,7 +722,7 @@ export default function App() {
           <>
             <section className="page-heading">
               <div className="heading-copy"><div className="eyebrow"><span className="signal-line" /> PROJE İNCELEME MASASI</div><h1>{project.name}<span className="heading-period">.</span></h1><p>{project.sourceKind === "github" ? <><Github size={13} /> {project.sourceUrl}</> : <><FileArchive size={13} /> {project.sourceName}</>} <span className="heading-divider">·</span> Yerel envanter {formatDate(project.localReport.analyzedAt)}</p></div>
-              <div className="heading-actions"><button className="quiet-button" onClick={downloadDossier} disabled={busy === "dossier"}><FileText size={15} /> {busy === "dossier" ? "Hazırlanıyor…" : "Döküm raporu"}</button><button className="quiet-button" onClick={removeProject} disabled={busy === "delete"}><Trash2 size={15} /> Kaydı kaldır</button><button className="primary-button small" onClick={() => setUploadOpen(true)}><CloudUpload size={15} /> Proje ekle</button></div>
+              <div className="heading-actions"><button className="quiet-button" onClick={exportCurrentScreen}><Download size={15} /> Bu ekranı .md indir</button><button className="quiet-button" onClick={downloadDossier} disabled={busy === "dossier"}><FileText size={15} /> {busy === "dossier" ? "Hazırlanıyor…" : "Tüm döküm"}</button><button className="quiet-button" onClick={removeProject} disabled={busy === "delete"}><Trash2 size={15} /> Kaydı kaldır</button><button className="primary-button small" onClick={() => openCreationDialog("code")}><CloudUpload size={15} /> Proje ekle</button></div>
             </section>
 
             <div className="section-tabs">
@@ -466,7 +732,7 @@ export default function App() {
 
             {tab === "overview" && localReport && <Overview project={project} onTab={setTab} onRunResearch={() => setTab("research")} />}
             {tab === "architecture" && localReport && <Architecture project={project} />}
-            {tab === "findings" && localReport && <Findings project={project} onRunAI={runAI} onUpdateState={updateFindingState} busy={busy === "ai"} consent={aiConsent} setConsent={setAiConsent} models={models} selectedModel={selectedModel} setSelectedModel={setSelectedModel} modelInfo={selectedModelInfo} evrenStatus={evrenStatus} modelsError={modelsError} onOpenEvren={() => { setEvrenOpen(true); setEvrenError(""); }} />}
+            {tab === "findings" && localReport && <Findings project={project} onRunAI={runAI} onUpdateState={updateFindingState} onClearLearningNotes={clearSecurityLearningNotes} busy={busy === "ai"} consent={aiConsent} setConsent={setAiConsent} models={models} selectedModel={selectedModel} setSelectedModel={setSelectedModel} modelInfo={selectedModelInfo} evrenStatus={evrenStatus} modelsError={modelsError} onOpenEvren={() => { setEvrenOpen(true); setEvrenError(""); }} />}
             {tab === "proactive" && <ProactivePanel project={project} onRun={runAudit} busy={busy === "audit"} onToast={setToast} />}
             {tab === "research" && <ResearchPanel project={project} queries={queries} setQuery={setQuery} onRun={runResearch} busy={busy === "research"} consent={researchConsent} setConsent={setResearchConsent} />}
             {tab === "roadmap" && <Roadmap project={project} onRunAI={() => setTab("findings")} evrenStatus={evrenStatus} onOpenEvren={() => { setEvrenOpen(true); setEvrenError(""); }} />}
@@ -480,18 +746,76 @@ export default function App() {
       {uploadOpen && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && busy !== "upload") setUploadOpen(false); }}>
         <div className="upload-modal" role="dialog" aria-modal="true" aria-labelledby="upload-title">
           <div className="modal-top"><div className="modal-symbol"><FolderKanban size={20} /></div><button className="icon-button" onClick={() => setUploadOpen(false)} disabled={busy === "upload"} aria-label="Kapat"><X size={18} /></button></div>
-          <div className="eyebrow"><span className="signal-line" /> YENİ PROJE</div><h2 id="upload-title">İlk önce <em>dosyaları</em> tanıyalım.</h2><p className="modal-description">Arşiv sunucuya güvenli inceleme için yüklenir ve proje alanında saklanır. Kod çalıştırılmaz. AI veya araştırmaya henüz gönderilmez.</p>
+          <div className="eyebrow"><span className="signal-line" /> YENİ ÇALIŞMA ALANI</div>
+          <div className="creation-kind-picker">
+            <button type="button" className={creationKind === "code" ? "selected" : ""} onClick={() => changeCreationKind("code")}><FileArchive size={17} /><span><strong>Kod projesi incele</strong><small>Arşiv veya GitHub deposu</small></span></button>
+            <button type="button" className={creationKind === "api" ? "selected" : ""} onClick={() => changeCreationKind("api")}><PlugZap size={17} /><span><strong>API / webservis test et</strong><small>Postman koleksiyonu veya istekler</small></span></button>
+          </div>
+          <h2 id="upload-title">{creationKind === "api" ? <>Servisleri <em>bir arada</em> test et.</> : <>İlk önce <em>dosyaları</em> tanıyalım.</>}</h2>
+          <p className="modal-description">{creationKind === "api"
+            ? "Ülke veya servis adını kendin belirle. Koleksiyon ve tokenlar bu çalışma alanında ayrı tutulur; yalnızca Gönder’e bastığın tek istek çalışır."
+            : "Arşiv sunucuya güvenli inceleme için yüklenir ve proje alanında saklanır. Kod çalıştırılmaz. AI veya araştırmaya henüz gönderilmez."}</p>
+          {creationKind === "code" && projectUploadError && <div className="project-upload-error" role="alert"><TriangleAlert size={16} /><span>{projectUploadError}</span></div>}
           <form onSubmit={submitProject}>
-            <label className="field-label">PROJE ADI <span>İsteğe bağlı</span><input value={projectName} onChange={(event) => setProjectName(event.target.value)} placeholder="Örn. Benim Projem" maxLength={180} /></label>
-            <div className={"drop-zone " + (isDragging ? "dragging " : "") + (uploadFile ? "has-file" : "")} onDragOver={(event) => { event.preventDefault(); setIsDragging(true); }} onDragLeave={() => setIsDragging(false)} onDrop={handleDrop} onClick={() => fileInputRef.current?.click()} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") fileInputRef.current?.click(); }}>
-              <input ref={fileInputRef} type="file" accept=".7z,.zip,.tar,.tgz,.gz" hidden onChange={(event) => { const file = event.target.files?.[0]; if (file) chooseFile(file); }} />
-              <div className="drop-icon">{uploadFile ? <FileArchive size={20} /> : <CloudUpload size={20} />}</div>
-              {uploadFile ? <><strong>{uploadFile.name}</strong><span>{formatBytes(uploadFile.size)} · Arşiv seçildi <button type="button" className="inline-clear" onClick={(event) => { event.stopPropagation(); setUploadFile(null); }}>Kaldır</button></span></> : <><strong>Arşivi buraya bırak</strong><span>veya <u>bilgisayarından seç</u> · boyut sınırı yok</span></>}
+            <label className="field-label">{creationKind === "api" ? "ÇALIŞMA ALANI ADI" : "PROJE ADI"} <span>{creationKind === "api" ? "Zorunlu" : "İsteğe bağlı"}</span><input value={projectName} onChange={(event) => setProjectName(event.target.value)} placeholder={creationKind === "api" ? "Örn. Ödeme entegrasyonu" : "Örn. Benim Projem"} maxLength={180} /></label>
+            {creationKind === "api" ? <>
+              <label className="field-label">SERVİS GRUBU / ETİKET <span>İsteğe bağlı</span><input value={serviceCategory} onChange={(event) => setServiceCategory(event.target.value)} placeholder="Örn. Türkiye" maxLength={100} /></label>
+              <input ref={postmanInputRef} type="file" accept=".json,application/json" hidden onChange={(event) => setPostmanFile(event.target.files?.[0] ?? null)} />
+              <button type="button" className={"postman-import-picker " + (postmanFile ? "has-file" : "")} onClick={() => postmanInputRef.current?.click()}>
+                <FileText size={20} /><span><strong>{postmanFile?.name ?? "Postman Collection JSON içe aktar"}</strong><small>{postmanFile ? `${formatBytes(postmanFile.size)} · Koleksiyon ayrıştırılacak` : "v2.1 koleksiyonu seç; istekler düzenlenebilir alanlara dönüşsün."}</small></span><Upload size={16} />
+              </button>
+              {postmanFile && <button type="button" className="inline-clear" onClick={() => { setPostmanFile(null); if (postmanInputRef.current) postmanInputRef.current.value = ""; }}>Koleksiyonu kaldır</button>}
+              <div className="data-transfer-note"><ShieldCheck size={17} /><p><strong>Güvenli kullanım:</strong> Postman scriptleri çalıştırılmaz. İstek, yalnız siz Gönder’e bastığınızda seçtiğiniz servise gider; tokenlar şifreli saklanır ve koleksiyon dışa aktarımında çıkarılır.</p></div>
+              <button type="submit" className="primary-button modal-submit" disabled={busy === "upload" || (!projectName.trim() && !postmanFile)}>{busy === "upload" ? <><LoaderCircle size={17} className="spin" /> Koleksiyon hazırlanıyor…</> : <>{postmanFile ? "Koleksiyonu içe aktar" : "API alanı oluştur"} <ArrowRight size={16} /></>}</button>
+            </> : <>
+              <div className={"drop-zone " + (isDragging ? "dragging " : "") + (uploadFile ? "has-file" : "")} onDragOver={(event) => { event.preventDefault(); setIsDragging(true); }} onDragLeave={() => setIsDragging(false)} onDrop={handleDrop} onClick={() => fileInputRef.current?.click()} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") fileInputRef.current?.click(); }}>
+                <input ref={fileInputRef} type="file" accept=".7z,.zip,.tar,.tgz,.gz" hidden onChange={(event) => { const file = event.target.files?.[0]; if (file) chooseFile(file); }} />
+                <div className="drop-icon">{uploadFile ? <FileArchive size={20} /> : <CloudUpload size={20} />}</div>
+                {uploadFile ? <><strong>{uploadFile.name}</strong><span>{formatBytes(uploadFile.size)} · Arşiv seçildi <button type="button" className="inline-clear" onClick={(event) => { event.stopPropagation(); setUploadFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}>Kaldır</button></span></> : <><strong>Arşivi buraya bırak</strong><span>veya <u>bilgisayarından seç</u></span></>}
+              </div>
+              <div className="separator-label"><span></span> YA DA HERKESE AÇIK DEPO <span></span></div>
+              <label className="field-label">GITHUB ADRESİ <input value={repoUrl} onChange={(event) => { setRepoUrl(event.target.value); if (event.target.value) { setUploadFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; } }} placeholder="https://github.com/owner/repository" autoComplete="url" /></label>
+              <div className="data-transfer-note"><ShieldCheck size={17} /><p><strong>Desteklenen giriş:</strong> ZIP, 7z, TAR, TGZ arşivi veya herkese açık GitHub depo adresi. Kod ULAK’ta çalıştırılmaz.</p></div>
+              <button type="submit" className="primary-button modal-submit" disabled={busy === "upload" || (!uploadFile && !repoUrl.trim())}>{busy === "upload" ? <><LoaderCircle size={17} className="spin" /> Dosyalar haritalanıyor…</> : <>Yerel incelemeyi başlat <ArrowRight size={16} /></>}</button>
+            </>}
+          </form>
+        </div>
+      </div>}
+
+      {knowledgeContext && <div className="modal-backdrop" role="presentation">
+        <div className="upload-modal learning-modal" role="dialog" aria-modal="true" aria-labelledby="learning-title">
+          <div className="modal-top">
+            <div className="modal-symbol"><BookOpenCheck size={20} /></div>
+            <button className="icon-button" onClick={() => setKnowledgeContext(null)} disabled={knowledgeBusy} aria-label="Şimdi değil"><X size={18} /></button>
+          </div>
+          <div className="eyebrow"><span className="signal-line" /> İSTEĞE BAĞLI · YEREL ÖĞRENME</div>
+          <h2 id="learning-title">ULAK’ın ortak bilgisini <em>geliştirelim mi?</em></h2>
+          <p className="modal-description">{knowledgeContext.kind === "api" ? "API isteği tamamlandı." : "Yerel proje incelemesi tamamlandı."} Başka projelerde de işe yarayabilecek, projeden bağımsız genel bir analiz dersi paylaşmak ister misiniz? Bu tamamen isteğe bağlıdır; not yalnızca bu ULAK kurulumunun ortak veritabanına kaydedilir.</p>
+          <div className="data-transfer-note"><ShieldCheck size={17} /><p><strong>Dışarı gönderilmez.</strong> Proje adı/kodu, dosya yolu, bulgu kanıtı, kullanıcı/servis bilgisi, token ve API bilgisi saklamayın. Notlar otomatik güvenlik kontrollerinden geçer; şüpheli içerik reddedilir. “Şimdi değil” seçerseniz hiçbir not eklenmez.</p></div>
+          <form onSubmit={submitSharedLearningNote}>
+            <label className="field-label">GENEL KONU
+              <select value={knowledgeCategory} onChange={(event) => setKnowledgeCategory(event.target.value as SharedKnowledgeCategory)}>
+                <option value="security">Güvenlik</option>
+                <option value="architecture">Mimari ve yapı</option>
+                <option value="testing">Test ve kalite</option>
+                <option value="performance">Performans</option>
+                <option value="other">Diğer genel ders</option>
+              </select>
+            </label>
+            <label className="field-label">GENEL NOT BAŞLIĞI
+              <input value={knowledgeTitle} onChange={(event) => setKnowledgeTitle(event.target.value)} maxLength={100} placeholder="Örn. Girdi sınırlarını katmanlar arasında doğrula" />
+            </label>
+            <label className="field-label">BAŞKA PROJELERDE DE İŞE YARAYACAK ÖNERİ
+              <textarea value={knowledgeRecommendation} onChange={(event) => setKnowledgeRecommendation(event.target.value)} maxLength={600} rows={4} placeholder="Projeye özel ayrıntı vermeden, genel olarak neye dikkat edilmeli?" />
+            </label>
+            <label className="learning-consent"><input type="checkbox" checked={knowledgeConsent} onChange={(event) => setKnowledgeConsent(event.target.checked)} /><span>Yalnızca bu genel notun yerel ULAK ortak bilgi alanına kaydedilmesini onaylıyorum. GitHub’a veya başka dış servise gönderilmeyecek.</span></label>
+            {knowledgeError && <div className="project-upload-error" role="alert"><TriangleAlert size={16} /><span>{knowledgeError}</span></div>}
+            <div className="learning-actions">
+              <button type="button" className="quiet-button" onClick={() => setKnowledgeContext(null)} disabled={knowledgeBusy}>Şimdi değil</button>
+              <button type="submit" className="primary-button" disabled={knowledgeBusy || !knowledgeConsent || knowledgeTitle.trim().length < 8 || knowledgeRecommendation.trim().length < 20}>
+                {knowledgeBusy ? <><LoaderCircle size={16} className="spin" /> Güvenli kontroller…</> : <><Check size={16} /> Genel notu yerel kaydet</>}
+              </button>
             </div>
-            <div className="separator-label"><span></span> YA DA HERKESE AÇIK DEPO <span></span></div>
-            <label className="field-label">GITHUB ADRESİ <input value={repoUrl} onChange={(event) => { setRepoUrl(event.target.value); if (event.target.value) setUploadFile(null); }} placeholder="https://github.com/owner/repository" autoComplete="url" /></label>
-            <div className="data-transfer-note"><ShieldCheck size={17} /><p><strong>Ne gönderiliyor?</strong> Arşiv, ULAK sunucusu ve proje nesne deposunda tutulur. Kod bu ekranda çalıştırılmaz. AI ve kaynak araması şu an kapalı; bunları rapor içinden ayrı ayrı başlatacaksın.</p></div>
-            <button type="submit" className="primary-button modal-submit" disabled={busy === "upload" || (!uploadFile && !repoUrl.trim())}>{busy === "upload" ? <><LoaderCircle size={17} className="spin" /> Dosyalar haritalanıyor…</> : <>Yerel incelemeyi başlat <ArrowRight size={16} /></>}</button>
           </form>
         </div>
       </div>}
@@ -572,7 +896,7 @@ export default function App() {
       {howOpen && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setHowOpen(false); }}>
         <div className="upload-modal how-modal" role="dialog" aria-modal="true" aria-labelledby="how-title">
           <div className="modal-top"><div className="modal-symbol"><BookOpenCheck size={20} /></div><button className="icon-button" onClick={() => setHowOpen(false)} aria-label="Kapat"><X size={18} /></button></div>
-          <HowItWorks project={project} evrenStatus={evrenStatus} onGo={(next) => { setHowOpen(false); setTab(next); }} onUpload={() => { setHowOpen(false); setUploadOpen(true); }} />
+          <HowItWorks project={project} evrenStatus={evrenStatus} onGo={(next) => { setHowOpen(false); setTab(next); }} onUpload={() => { setHowOpen(false); openCreationDialog("code"); }} />
         </div>
       </div>}
 
@@ -843,12 +1167,36 @@ function Architecture({ project }: { project: Project }) {
   );
 }
 
-function Findings({ project, onRunAI, onUpdateState, busy, consent, setConsent, models, selectedModel, setSelectedModel, modelInfo, evrenStatus, modelsError, onOpenEvren }: { project: Project; onRunAI: () => void; onUpdateState: (findingId: string, status: FindingStateStatus, note: string) => void; busy: boolean; consent: boolean; setConsent: (value: boolean) => void; models: ModelChoice[]; selectedModel: string; setSelectedModel: (id: string) => void; modelInfo: ModelChoice | null; evrenStatus: EvrenKeyStatus | null; modelsError: string; onOpenEvren: () => void }) {
+function Findings({ project, onRunAI, onUpdateState, onClearLearningNotes, busy, consent, setConsent, models, selectedModel, setSelectedModel, modelInfo, evrenStatus, modelsError, onOpenEvren }: { project: Project; onRunAI: () => void; onUpdateState: (findingId: string, status: FindingStateStatus, note: string) => void; onClearLearningNotes: () => void; busy: boolean; consent: boolean; setConsent: (value: boolean) => void; models: ModelChoice[]; selectedModel: string; setSelectedModel: (id: string) => void; modelInfo: ModelChoice | null; evrenStatus: EvrenKeyStatus | null; modelsError: string; onOpenEvren: () => void }) {
   const localFindings = project.localReport.findings;
   const aiFindings = project.aiReport?.findings ?? [];
+  const learningNotes = project.localReport.learningNotes ?? [];
   return (
     <div className="page-content">
       <PageIntro eyebrow="BULGULAR" title="Her işaretin arkında kanıt." copy="Önce yerel kural taraması. Daha geniş mimari yorum için, seçtiğin proje bağlamı onayınla seçili AI modeline gönderilir." />
+      <section className="panel local-findings-panel">
+        <div className="panel-heading">
+          <div>
+            <span className="panel-overline">ULAK INSTANCE · ANONİMLEŞTİRİLMİŞ</span>
+            <h2>Önceki proje taramalarından notlar</h2>
+          </div>
+          {learningNotes.length ? <button className="quiet-button" onClick={onClearLearningNotes}><Trash2 size={14} /> Notları sil</button> : null}
+        </div>
+        <p className="muted-text">Bu ULAK kurulumunda önceki incelemelerdeki genel güvenlik kuralları ve açık rızayla eklenen proje dışı notlar gösterilir. Proje adı, kaynak kodu, dosya yolu, servis bilgisi ve sır öğrenme notuna kaydedilmez. Yeni notlar başka projelerde bağlam olarak gösterilir; otomatik kural veya kod değişikliği başlatmaz.</p>
+        {learningNotes.length ? (
+          <div className="finding-stack">
+            {learningNotes.map((note) => (
+              <article key={note.id} className="finding-card">
+                <div className="finding-main">
+                  <div className="finding-title-row"><span className="finding-area">{note.source === "shared" ? `Onaylı ortak not · ${note.contributions ?? 1} katkı` : `Önceki incelemelerde görüldü · ${note.scansSeen} tarama`}</span></div>
+                  <h3>{note.title}</h3>
+                  <p>{note.recommendation}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : <p className="muted-text">Henüz ortak not yok. Yeni bir genel not yalnızca inceleme sonunda açıkça onay verirseniz kaydedilir.</p>}
+      </section>
       <section className="ai-consent-card">
         <div className="ai-consent-symbol"><WandSparkles size={19} /></div>
         <div className="ai-consent-copy">

@@ -6,3 +6,6 @@ onlyBuiltDependencies:
   - esbuild
 
 ignoredBuiltDependencies: []
+
+overrides:
+  shell-quote: ^1.9.0

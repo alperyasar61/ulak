@@ -3,7 +3,7 @@ import express from "express";
 import multer from "multer";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
-import { ensureSchema, databaseKind, decodeJson, getProject, listProjects, adoptAllOwners, insertProject, updateProjectAnalysis, updateProjectResearch, updateProjectProactiveAudit, updateProjectReconstruction, addMessage, getMessages, softDeleteProject, listFindingStates, upsertFindingState, pingDatabase, insertAuditLog } from "./db.js";
+import { ensureSchema, databaseKind, decodeJson, getProject, listProjects, adoptAllOwners, insertProject, updateProjectLocalReport, getSecurityLearningNotes, addSharedKnowledgeNote, clearSecurityLearningNotes, listApiWorkspaces, getApiWorkspace, getPublicApiWorkspace, createApiWorkspace, updateApiWorkspace, deleteApiWorkspace, updateProjectAnalysis, updateProjectResearch, updateProjectProactiveAudit, updateProjectReconstruction, addMessage, getMessages, permanentlyDeleteProject, listFindingStates, upsertFindingState, pingDatabase, insertAuditLog } from "./db.js";
 import { ownerHashForRequest, newSessionToken, rateLimitMiddleware, singleUserMode, SINGLE_USER_HASH } from "./security.js";
 import { analyzeArchive, extractArchiveEntry, type LocalReport, type ManifestEntry } from "./archive.js";
 import { buildBlueprint, mergeAiBlueprint, type ReconstructionBlueprint } from "./blueprint.js";
@@ -18,6 +18,7 @@ import { webDistRoot } from "./paths.js";
 import { createReverseEngineeringService } from "../modules/KodMercek/src/composition/reverseEngineering.js";
 import { execFileOutput } from "../modules/KodMercek/src/process/ExecFileOutput.js";
 import { inspectWindowsNativeReadiness } from "../modules/KodMercek/src/process/WindowsAuthority.js";
+import { executeApiRequest, exportPostmanCollection, importPostmanCollection } from "./api-workspaces.js";
 
 const app = express();
 // `.env` içinde anahtar varsa bir kez okunup süreç ortamından silinir; böylece
@@ -74,8 +75,9 @@ function jsonError(error: unknown) {
   return { status: 400, message: error instanceof Error ? error.message.slice(0, 500) : "İşlem tamamlanamadı." };
 }
 
-function publicProject(row: any) {
+function publicProject(row: any, learningNotes: Awaited<ReturnType<typeof getSecurityLearningNotes>> = []) {
   const localReport = parseProjectJson<LocalReport>(row.local_report_json, {} as LocalReport);
+  localReport.learningNotes = learningNotes;
   return {
     id: row.id,
     name: row.name,
@@ -216,8 +218,124 @@ app.get("/api/projects", async (req, res) => {
   try {
     const ownerHash = owner(req);
     const rows = await listProjects(ownerHash);
-    const projects = await Promise.all(rows.map(async (row) => ({ ...publicProject(row), findingStates: await listFindingStates(row.id, ownerHash) })));
+    const learningNotes = await getSecurityLearningNotes();
+    const projects = await Promise.all(rows.map(async (row) => ({ ...publicProject(row, learningNotes), findingStates: await listFindingStates(row.id, ownerHash) })));
     res.json({ projects });
+  } catch (error) { const failure = jsonError(error); res.status(failure.status).json({ error: failure.message }); }
+});
+
+app.delete("/api/security-learning-notes", async (req, res) => {
+  try {
+    const ownerHash = owner(req);
+    await clearSecurityLearningNotes();
+    await insertAuditLog({ ownerHash, eventType: "security_learning_cleared", projectId: null, details: {}, ipAddress: req.ip ?? null });
+    res.json({ ok: true });
+  } catch (error) { const failure = jsonError(error); res.status(failure.status).json({ error: failure.message }); }
+});
+
+app.post("/api/shared-learning-notes", rateLimitMiddleware(10, 60_000), async (req, res) => {
+  try {
+    const ownerHash = owner(req);
+    const projectId = ensureString(req.body?.projectId);
+    const workspaceId = ensureString(req.body?.workspaceId);
+    if (Boolean(projectId) === Boolean(workspaceId)) {
+      return res.status(400).json({ error: "Bir proje incelemesi veya API çalışma alanı seçin." });
+    }
+    let forbiddenTerms: string[];
+    if (projectId) {
+      const project = await getProject(projectId, ownerHash);
+      if (!project) return res.status(404).json({ error: "İnceleme oturumu bulunamadı." });
+      forbiddenTerms = [project.name, project.source_name];
+      if (project.source_url) {
+        try { forbiddenTerms.push(new URL(project.source_url).hostname); } catch { forbiddenTerms.push(project.source_url); }
+      }
+    } else {
+      const workspace = await getPublicApiWorkspace(workspaceId!, ownerHash);
+      if (!workspace) return res.status(404).json({ error: "API çalışma alanı bulunamadı." });
+      forbiddenTerms = [workspace.name, workspace.category];
+    }
+    const learningNotes = await addSharedKnowledgeNote(req.body?.note, forbiddenTerms);
+    res.status(201).json({ learningNotes });
+  } catch (error) {
+    const failure = jsonError(error);
+    res.status(failure.status).json({ error: failure.message });
+  }
+});
+
+app.get("/api/api-workspaces", async (req, res) => {
+  try { res.json({ workspaces: await listApiWorkspaces(owner(req)) }); }
+  catch (error) { const failure = jsonError(error); res.status(failure.status).json({ error: failure.message }); }
+});
+
+app.post("/api/api-workspaces", async (req, res) => {
+  try {
+    const workspace = await createApiWorkspace(randomUUID(), owner(req), req.body);
+    res.status(201).json({ workspace });
+  } catch (error) { const failure = jsonError(error); res.status(failure.status).json({ error: failure.message }); }
+});
+
+app.post("/api/api-workspaces/import", async (req, res) => {
+  try {
+    const ownerHash = owner(req);
+    const name = cleanText(ensureString(req.body?.name), 180);
+    const category = cleanText(ensureString(req.body?.category), 100);
+    const imported = importPostmanCollection(req.body?.collection, name, category);
+    const workspace = await createApiWorkspace(randomUUID(), ownerHash, imported);
+    await insertAuditLog({ ownerHash, eventType: "api_collection_import", projectId: null, details: { requestCount: workspace.requests.length }, ipAddress: req.ip ?? null });
+    res.status(201).json({ workspace });
+  } catch (error) { const failure = jsonError(error); res.status(failure.status).json({ error: failure.message }); }
+});
+
+app.get("/api/api-workspaces/:id", async (req, res) => {
+  try {
+    const workspace = await getPublicApiWorkspace(ensureString(req.params.id)!, owner(req));
+    if (!workspace) return res.status(404).json({ error: "API çalışma alanı bulunamadı." });
+    res.json({ workspace });
+  } catch (error) { const failure = jsonError(error); res.status(failure.status).json({ error: failure.message }); }
+});
+
+app.get("/api/api-workspaces/:id/export", async (req, res) => {
+  try {
+    const workspace = await getApiWorkspace(ensureString(req.params.id)!, owner(req));
+    if (!workspace) return res.status(404).json({ error: "API çalışma alanı bulunamadı." });
+    const collection = exportPostmanCollection(workspace);
+    const filename = workspace.name.replace(/[^A-Za-z0-9._-]+/g, "-").slice(0, 80) || "ulak-api";
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}.postman_collection.json"`);
+    res.json(collection);
+  } catch (error) { const failure = jsonError(error); res.status(failure.status).json({ error: failure.message }); }
+});
+
+app.put("/api/api-workspaces/:id", async (req, res) => {
+  try {
+    const workspace = await updateApiWorkspace(ensureString(req.params.id)!, owner(req), req.body);
+    if (!workspace) return res.status(404).json({ error: "API çalışma alanı bulunamadı." });
+    res.json({ workspace });
+  } catch (error) { const failure = jsonError(error); res.status(failure.status).json({ error: failure.message }); }
+});
+
+app.delete("/api/api-workspaces/:id", async (req, res) => {
+  try {
+    if (!await deleteApiWorkspace(ensureString(req.params.id)!, owner(req))) return res.status(404).json({ error: "API çalışma alanı bulunamadı." });
+    res.json({ ok: true });
+  } catch (error) { const failure = jsonError(error); res.status(failure.status).json({ error: failure.message }); }
+});
+
+app.post("/api/api-workspaces/:id/requests/:requestId/send", rateLimitMiddleware(30, 60_000), async (req, res) => {
+  try {
+    const ownerHash = owner(req);
+    const workspace = await getApiWorkspace(ensureString(req.params.id)!, ownerHash);
+    if (!workspace) return res.status(404).json({ error: "API çalışma alanı bulunamadı." });
+    const result = await executeApiRequest(workspace, ensureString(req.params.requestId)!);
+    if (Object.keys(result.savedSecrets).length) await updateApiWorkspace(workspace.id, ownerHash, workspace);
+    await insertAuditLog({
+      ownerHash,
+      eventType: "api_request",
+      projectId: null,
+      details: { status: result.status, durationMs: result.durationMs },
+      ipAddress: req.ip ?? null,
+    });
+    const { savedSecrets: _savedSecrets, ...publicResult } = result;
+    res.json({ result: publicResult });
   } catch (error) { const failure = jsonError(error); res.status(failure.status).json({ error: failure.message }); }
 });
 
@@ -253,6 +371,8 @@ app.post("/api/projects", upload.single("archive"), async (req, res) => {
 
     const title = cleanText(ensureString(req.body?.projectName), 180) || path.basename(sourceName, path.extname(sourceName)).replace(/[._-]+/g, " ").trim() || "Yeni proje";
     await insertProject({ id, ownerHash, name: title, sourceName, sourceKind, sourceUrl, archiveKey: objectKey, manifest: bundle.manifest, localReport: bundle.report, proactiveAudit: bundle.proactiveAudit });
+    bundle.report.learningNotes = await getSecurityLearningNotes();
+    await updateProjectLocalReport(id, ownerHash, bundle.report);
     await insertAuditLog({ ownerHash, eventType: "project_creation", projectId: id, details: { title, sourceKind, sourceUrl: sourceUrl ?? null }, ipAddress: req.ip ?? null });
     res.status(201).json({ project: { id, name: title, sourceName, sourceKind, sourceUrl, manifest: bundle.manifest, localReport: bundle.report, proactiveAudit: bundle.proactiveAudit, proactiveDiff: null, findingStates: {}, aiReport: null, research: null, aiConsentAt: null, researchConsentAt: null, status: "ready", createdAt: new Date().toISOString() } });
   } catch (error) { const failure = jsonError(error); res.status(failure.status).json({ error: failure.message }); }
@@ -553,15 +673,10 @@ app.delete("/api/projects/:id", async (req, res) => {
     const ownerHash = owner(req);
     const row = await getProject(ensureString(req.params.id)!, ownerHash);
     if (!row) return res.status(404).json({ error: "Proje bulunamadı." });
-    const deleted = await softDeleteProject(row.id, ownerHash);
+    if (row.archive_key) await deleteObject(row.archive_key);
+    const deleted = await permanentlyDeleteProject(row.id, ownerHash);
     if (!deleted) return res.status(404).json({ error: "Proje bulunamadı." });
-    let objectWarning = "";
-    if (row.archive_key) {
-      try { await deleteObject(row.archive_key); }
-      catch { objectWarning = " Arşiv dosyası diskten kaldırılamadı; depolama dizinini kontrol edin."; }
-    }
-    await insertAuditLog({ ownerHash, eventType: "project_deletion", projectId: row.id, details: { sourceName: row.source_name }, ipAddress: req.ip ?? null });
-    res.json({ ok: true, warning: `Proje kaydı ve yerel arşiv nesnesi silindi.${objectWarning}` });
+    res.json({ ok: true, warning: "Proje kaydı, arşivi ve projeye bağlı inceleme verileri kalıcı olarak silindi. Ortak öğrenme notları korundu." });
   } catch (error) { const failure = jsonError(error); res.status(failure.status).json({ error: failure.message }); }
 });
 

@@ -1,4 +1,4 @@
-import type { ChatMessage, EvrenKeyStatus, ModelChoice, Project, Reconstruction, Research } from "./types";
+import type { ApiResponse, ApiWorkspace, ChatMessage, EvrenKeyStatus, ModelChoice, Project, Reconstruction, Research, SecurityLearningNote, SharedKnowledgeCategory } from "./types";
 
 const SESSION_KEY = "ulak-private-session-v1";
 
@@ -41,12 +41,21 @@ export const api = {
   testEvrenKey: () => request<{ ok: boolean; modelCount: number; status: EvrenKeyStatus }>("/api/evren/test", { method: "POST" }),
   clearEvrenKey: () => request<EvrenKeyStatus>("/api/evren/key", { method: "DELETE" }),
   createProject: (form: FormData) => request<{ project: Project }>("/api/projects", { method: "POST", body: form }),
+  listApiWorkspaces: () => request<{ workspaces: ApiWorkspace[] }>("/api/api-workspaces"),
+  createApiWorkspace: (workspace: Omit<ApiWorkspace, "id" | "createdAt" | "updatedAt">) => request<{ workspace: ApiWorkspace }>("/api/api-workspaces", { method: "POST", body: JSON.stringify(workspace) }),
+  importPostmanCollection: (name: string, category: string, collection: unknown) => request<{ workspace: ApiWorkspace }>("/api/api-workspaces/import", { method: "POST", body: JSON.stringify({ name, category, collection }) }),
+  saveApiWorkspace: (id: string, workspace: Omit<ApiWorkspace, "id" | "createdAt" | "updatedAt">) => request<{ workspace: ApiWorkspace }>(`/api/api-workspaces/${id}`, { method: "PUT", body: JSON.stringify(workspace) }),
+  deleteApiWorkspace: (id: string) => request<{ ok: boolean }>(`/api/api-workspaces/${id}`, { method: "DELETE" }),
+  sendApiRequest: (workspaceId: string, requestId: string) => request<{ result: ApiResponse }>(`/api/api-workspaces/${workspaceId}/requests/${requestId}/send`, { method: "POST" }),
   analyzeWithAI: (projectId: string, model: string) => request<{ aiReport: Project["aiReport"] }>(`/api/projects/${projectId}/ai`, { method: "POST", body: JSON.stringify({ consent: true, model }) }),
   runResearch: (projectId: string, queries: string[]) => request<{ research: Research }>(`/api/projects/${projectId}/research`, { method: "POST", body: JSON.stringify({ consent: true, queries }) }),
   runProactiveAudit: (projectId: string) => request<{ proactiveAudit: Project["proactiveAudit"]; proactiveDiff: Project["proactiveDiff"] }>(`/api/projects/${projectId}/proactive-audit`, { method: "POST" }),
   getMessages: (projectId: string) => request<{ messages: ChatMessage[] }>(`/api/projects/${projectId}/messages`),
   ask: (projectId: string, question: string, model: string) => request<{ answer: string }>(`/api/projects/${projectId}/chat`, { method: "POST", body: JSON.stringify({ consent: true, question, model }) }),
   deleteProject: (projectId: string) => request<{ ok: boolean; warning: string }>(`/api/projects/${projectId}`, { method: "DELETE" }),
+  clearSecurityLearningNotes: () => request<{ ok: boolean }>("/api/security-learning-notes", { method: "DELETE" }),
+  addSharedLearningNote: (context: { projectId: string } | { workspaceId: string }, note: { category: SharedKnowledgeCategory; title: string; recommendation: string }) =>
+    request<{ learningNotes: SecurityLearningNote[] }>("/api/shared-learning-notes", { method: "POST", body: JSON.stringify({ ...context, note }) }),
   getFindingStates: (projectId: string) => request<{ findingStates: Project["findingStates"] }>(`/api/projects/${projectId}/finding-states`),
   updateFindingState: (projectId: string, findingId: string, status: string, note: string) => request<{ findingStates: Project["findingStates"] }>(`/api/projects/${projectId}/findings/${encodeURIComponent(findingId)}/state`, { method: "PUT", body: JSON.stringify({ status, note }) }),
   deepAnalyze: (projectId: string, filePath: string) => request<{ analysis: string }>(`/api/projects/${projectId}/deep-analyze`, { method: "POST", body: JSON.stringify({ filePath }) }),

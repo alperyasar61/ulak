@@ -6,7 +6,7 @@ ULAK’ın mevcut güvenli statik analiz çekirdeği korunur; yeni sürüm bu ç
 
 Proaktif denetim; bağımlılık kilitleme, test/CI izi, güvenlik politikası ve sahiplik dokümantasyonu, sır hijyeni, tedarik zinciri görünürlüğü, dokümantasyon/lisans ve sürüm güncelliği hazırlığı gibi kontrol gruplarını statik olarak değerlendirir. Güncel paket sürümü veya OSV eşleşmesi gerektiğinde bu bilgiler ancak kullanıcı canlı araştırmayı onayladıktan sonra araştırma katmanından gelir. Böylece yerel sinyal ile canlı kanıt birbirinden ayrılır.
 
-Sunucu tarafında analiz sonucu MySQL’de proje kaydıyla saklanır. Arşiv nesnesi yönetilen storage’da tutulmaya devam eder; runtime storage API fiziksel silme sunmadığı için silme uyarısı aynen korunur. Proje sahipliği mevcut tarayıcı oturum hash’i ile korunur; bu özel Preview sürümünde gerçek kimlik doğrulama olmadığı açıkça belirtilir.
+Sunucu tarafında analiz sonucu MySQL’de proje kaydıyla saklanır. Arşiv nesnesi yönetilen storage’da tutulmaya devam eder; runtime storage API fiziksel silme sunmadığı için silme uyarısı aynen korunur. Proje sahipliği mevcut tarayıcı oturum hash’i ile korunur; uygulamada gerçek kullanıcı kimlik doğrulaması olmadığı için bu yaklaşım çok kullanıcılı veya herkese açık servis dağıtımına uygun değildir.
 
 ## Proje yapısı
 

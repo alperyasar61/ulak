@@ -40,6 +40,7 @@ export interface LocalReport {
   apiSurface: ApiSurface[];
   privacySignals: PrivacySignal[];
   findings: LocalFinding[];
+  learningNotes?: Array<{ id: string; title: string; recommendation: string; scansSeen: number }>;
   secretFileCount: number;
   analyzedAt: string;
 }

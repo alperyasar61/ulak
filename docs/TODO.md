@@ -26,12 +26,12 @@
 ### 4. Rapor ve yönetişim deneyimi
 - [x] Genel bakış, proje haritası, bulgular, proaktif denetim, canlı araştırma, yol haritası, takip sohbeti ve gizlilik sekmeleri vardır.
 - [x] Kullanıcı veri akışını, dış aktarım kapsamını ve storage fiziksel silme sınırlamasını görür.
-- [x] Özel Preview sürümünün gerçek kullanıcı kimliği/erişim denetimi içermediği açıkça belirtilir.
+- [x] ULAK kaynak deposunun görünürlüğü ile çalışan uygulamanın erişim güvenliği birbirinden ayrılır; uygulamada gerçek kullanıcı kimliği/erişim denetimi olmadığı belirtilir.
 
 ## Sonraki aşamalar
 
 ### Kritik — gerçek kullanıcı ve saklama yönetişimi
-- [ ] Çok kullanıcılı kamuya açık yayımdan önce gerçek kimlik doğrulama, kullanıcıya özel yetki, arşiv silme ve saklama süresi uygulanmalı.
+- [ ] ULAK uygulamasını internete veya çok kullanıcılı ortama açmadan önce gerçek kimlik doğrulama, kullanıcıya özel yetki, arşiv silme ve saklama süresi uygulanmalı.
 - [ ] Proje ve mesaj uçlarında rate limit, audit log ve CSRF/oturum sertleştirmesi eklenmeli.
 
 ### Faz 2 — derin statik analiz
