@@ -10,7 +10,7 @@
 | --- | --- | --- |
 | Yüksek | 3 | Düzeltildi |
 | Orta | 5 | Düzeltildi |
-| Düşük | 6 | 5 düzeltildi, 1 karar bekliyor |
+| Düşük | 6 | Düzeltildi |
 
 Proje genel olarak sağlam: tip güvenliği tam (`strict` + `exactOptionalPropertyTypes`), 45 birim testi geçiyor, arşiv çıkarma yol geçişine karşı korumalı, XSS yüzeyi yok (`dangerouslySetInnerHTML`/`innerHTML`/`eval` kullanılmıyor), sırlar AES-256-GCM ile şifreli saklanıyor. Aşağıdaki bulgular bu temeli bozmuyor; çoğu "yazılmış ama bağlanmamış" ya da "dokümantasyon koddan kopmuş" sınıfında.
 
@@ -99,7 +99,9 @@ Yalnızca `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` gön
 
 ### L1 — Kök `LICENSE` dosyası yok
 
-ULAK'ın kendi analizi de bunu işaretledi. Yalnızca `apps/backend/modules/KodMercek/LICENSE` ve `third_party/*` altında lisanslar var. **Karar bekliyor:** hangi lisans (MIT / Apache-2.0 / özel) kullanılacağı proje sahibinin tercihi.
+ULAK'ın kendi analizi de bunu işaretledi. Yalnızca `apps/backend/modules/KodMercek/LICENSE` ve `third_party/*` altında lisanslar var.
+
+**Düzeltme:** MIT lisansı seçildi, kök `LICENSE` eklendi. README'ye "Lisans" bölümü ve gömülü üçüncü taraf bileşenlerin lisans konumları yazıldı.
 
 ### L2 — `App.tsx` tek dosyada 1829 satır
 
@@ -167,8 +169,7 @@ Düzeltmeler sonrası çalıştırılanlar:
 
 ## Kalan işler (öncelik sırası)
 
-1. **L1** — Lisans seçimi ve kök `LICENSE` dosyası.
-2. **L6** — `supertest` ile rota seviyesinde entegrasyon testleri (özellikle `POST /api/projects` yükleme sınırı ve `429` davranışı).
-3. **L2** — `App.tsx` bileşenlere bölünmesi.
-4. **L3** — `schema_version` tabanlı migrasyon.
-5. CI'a `pnpm lint` adımı (henüz lint yapılandırması yok — ESLint eklenmeli).
+1. **L6** — `supertest` ile rota seviyesinde entegrasyon testleri (özellikle `POST /api/projects` yükleme sınırı ve `429` davranışı).
+2. **L2** — `App.tsx` bileşenlere bölünmesi.
+3. **L3** — `schema_version` tabanlı migrasyon.
+4. CI'a `pnpm lint` adımı (henüz lint yapılandırması yok — ESLint eklenmeli).
