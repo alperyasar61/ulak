@@ -61,6 +61,12 @@ Arayüzün sağ üstündeki **EVREN** düğmesi model listesini ve anahtar yöne
 - **Sil** düğmesi şifreli dosyayı ve bellek kopyasını temizler; model listesi anında yenilenir. Silme geri alınamaz.
 - Sunucu yeniden başlatıldığında anahtar şifreli dosyadan geri yüklenir; yeniden girmeniz gerekmez.
 
+## Lisans
+
+MIT — ayrıntılar [`LICENSE`](LICENSE) dosyasındadır. Gömülü üçüncü taraf bileşenlerin lisansları
+`apps/backend/modules/KodMercek/LICENSE` ve `apps/backend/modules/KodMercek/third_party/*/LICENSE*`
+altında ayrıca listelenmiştir.
+
 ## Araştırma kaynakları
 
 Ayrıntılı teknik kararlar ve kaynak bağlantıları [`docs/research-implementation-sources.md`](docs/research-implementation-sources.md) dosyasındadır.
