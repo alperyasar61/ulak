@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#171b22" />
+    <meta name="description" content="KodMercek — Türkçe, yerel ve kanıt odaklı kod inceleme çalışma masası." />
+    <title>KodMercek — Kod inceleme çalışma masası</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Proje gezgini">
+        <div class="brand-lockup"><span class="brand-mark">K</span><div><strong>KodMercek</strong><small>yerel inceleme masası</small></div></div>
+        <div class="project-label"><span>PROJE</span><button id="newProject" class="icon-button" title="Yeni proje">＋</button></div>
+        <div class="project-card"><span class="status-dot"></span><div><strong id="projectName">örnek-proje</strong><small id="projectMeta">6 dosya · yerel</small></div><span class="chevron">⌄</span></div>
+        <div class="file-tree" id="fileTree" aria-label="Dosyalar"></div>
+        <div class="sidebar-bottom"><div class="privacy-note"><span>◉</span><p><strong>Yerel ve özel</strong><br />Kodunuz tarayıcıdan çıkmaz.</p></div><button class="ghost-button" id="helpButton">Nasıl çalışır?</button></div>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar"><div><p class="eyebrow">KOD İNCELEME / ÇALIŞMA ALANI</p><h1 id="pageTitle">Kodun içini görün.</h1></div><div class="top-actions"><label class="upload-button">Dosya yükle<input id="fileInput" type="file" multiple accept=".js,.jsx,.ts,.tsx,.py,.json,.html,.css,.vue,.svelte,.java,.go,.rs,.rb,.php,.md,.sql,.yml,.yaml,.xml,.txt" /></label><button class="primary-button" id="analyzeButton"><span>✦</span> İncelemeyi başlat</button></div></header>
+        <div class="tool-row" role="toolbar" aria-label="İnceleme araçları">
+          <button class="tool-button active" data-mode="review">Kod inceleme</button>
+          <button class="tool-button" data-mode="diff">Git diff</button>
+          <button class="tool-button" data-mode="ast">AST özeti</button>
+          <button class="tool-button" id="rulesButton">Kurallarımı yönet</button>
+          <a class="tool-button plugin-link" href="./plugins/android-upgrade/">Android yükseltme eklentisi ↗</a>
+          <span class="tool-spacer"></span>
+          <button class="export-button" id="htmlExport">HTML indir</button>
+          <button class="export-button" id="pdfExport">PDF yazdır</button>
+        </div><div class="notice" id="notice"><span class="notice-icon">i</span><span><strong>İpucu:</strong> Bir dosya seçin veya örnek projeyle başlayın. KodMercek şu an temel güvenlik ve kalite desenlerini yerel olarak tarar.</span><button class="notice-close" aria-label="Bildirimi kapat">×</button></div>
+
+        <section class="diff-panel panel hidden" id="diffPanel"><div class="panel-head"><div><span class="eyebrow">DEĞİŞİKLİK İNCELEMESİ</span><h2>Çalışma ağacındaki değişiklikler</h2></div><span class="count-pill" id="diffSummary">+0 −0</span></div><div class="diff-toolbar"><span>karşılaştırma: <strong>HEAD~1</strong> → <strong>çalışma ağacı</strong></span><span id="diffFiles">0 dosya değişti</span></div><div class="diff-view" id="diffView"></div></section>
+        <section class="ast-panel panel hidden" id="astPanel"><div class="panel-head"><div><span class="eyebrow">YAPISAL İNCELEME</span><h2>AST özeti</h2></div><span class="count-pill">yerel</span></div><div class="ast-grid" id="astGrid"></div><div class="ast-note">Bu sürüm, tarayıcıda bağımlılık kurmadan yapısal sinyalleri çıkarır. Üretim sürümünde TypeScript/Tree-sitter AST sağlayıcısı bu panelin veri kaynağı olacaktır.</div></section>
+        <section class="metrics" aria-label="İnceleme özeti"><div class="metric-card"><span class="metric-label">Toplam bulgu</span><strong id="metricTotal">08</strong><span class="metric-note">inceleme kapsamında</span></div><div class="metric-card critical"><span class="metric-label">Öncelikli</span><strong id="metricCritical">02</strong><span class="metric-note">hemen bakılmalı</span></div><div class="metric-card score"><span class="metric-label">Kod sağlığı</span><strong id="metricScore">74<span>/100</span></strong><span class="metric-note">iyi, iyileştirilebilir</span></div><div class="metric-card"><span class="metric-label">İncelenen</span><strong id="metricFiles">06</strong><span class="metric-note">dosya · <span id="metricLines">428</span> satır</span></div></section>
+
+        <section class="analysis-grid">
+          <div class="code-panel panel"><div class="panel-head"><div class="tab-strip" id="tabs"></div><button class="subtle-button" id="copyButton">Kodu kopyala</button></div><div class="code-wrap"><div class="line-gutter" id="lineGutter"></div><pre class="code-view" id="codeView" tabindex="0" aria-label="Kod görünümü"></pre></div><div class="code-foot"><span id="selectionInfo">Satır 1–1</span><span><kbd>⌘</kbd> <kbd>F</kbd> bul · <kbd>↑</kbd><kbd>↓</kbd> dosya değiştir</span></div></div>
+          <aside class="findings-panel panel"><div class="panel-head findings-head"><div><span class="eyebrow">KANITLI ÇIKTI</span><h2>Bulgular</h2></div><span class="count-pill" id="findingCount">08</span></div><div class="filter-row" role="toolbar" aria-label="Bulgu filtresi"><button class="filter active" data-filter="all">Tümü <span id="allCount">8</span></button><button class="filter" data-filter="critical">Kritik <span id="criticalCount">2</span></button><button class="filter" data-filter="high">Yüksek <span id="highCount">2</span></button><button class="filter" data-filter="medium">Orta <span id="mediumCount">3</span></button></div><div class="findings-list" id="findingsList"></div></aside>
+        </section>
+      </main>
+    </div>
+    <dialog id="helpDialog"><button class="dialog-close" aria-label="Kapat">×</button><span class="dialog-mark">K</span><h2>KodMercek nasıl çalışır?</h2><p>Dosyalarınız yalnızca bu tarayıcı sekmesinde okunur. İlk sürüm, tehlikeli DOM kullanımı, dinamik kod çalıştırma, tip kaçakları, unutulmuş hata ayıklama izleri ve bakım notları gibi desenleri işaretler.</p><p>Her bulgu için dosya, satır ve neden bilgisi gösterilir. Bu ilk sürüm otomatik düzeltme yapmaz; öneriyi siz onaylamadan kodunuza dokunmaz.</p><button class="primary-button" id="dialogOk">Anladım</button></dialog>
+  <dialog id="rulesDialog"><button class="dialog-close" aria-label="Kapat">×</button><span class="dialog-mark">K</span><h2>Özel güvenlik kuralı</h2><p>Projeye özel bir desen ekleyin. Kural yalnızca bu tarayıcıda saklanır ve sonraki incelemelerde çalışır.</p><label>Kural adı<input id="ruleTitle" placeholder="Örn. Sabit API anahtarı" /></label><label>Aranacak desen (regex)<input id="rulePattern" placeholder="api[_-]?key\s*[:=]" /></label><label>Önem<select id="ruleSeverity"><option value="critical">Kritik</option><option value="high">Yüksek</option><option value="medium" selected>Orta</option><option value="low">Düşük</option></select></label><label>Açıklama<textarea id="ruleDetail" rows="3" placeholder="Neden önemli ve nasıl düzeltilir?"></textarea></label><div class="dialog-actions"><button class="subtle-button" id="clearRules">Kayıtlı kuralları temizle</button><button class="primary-button" id="saveRule">Kuralı kaydet</button></div><div class="saved-rules" id="savedRules"></div></dialog></body>
+</html>

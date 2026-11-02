@@ -1,0 +1,7 @@
+{
+  "name": "KodMercek-readiness-javascript-cli",
+  "version": "1.0.0",
+  "type": "module",
+  "bin": "index.js"
+}
+

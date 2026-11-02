@@ -1,8 +1,11 @@
 node_modules/
 dist/
 dist-server/
+apps/*/dist/
+apps/*/dist-server/
 .env
 .env.*
 !.env.example
+.ulak-data/
 *.log
 .DS_Store

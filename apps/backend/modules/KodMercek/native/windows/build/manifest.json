@@ -1,0 +1,9 @@
+{
+  "packageVersion": "6.5.0",
+  "platform": "win32",
+  "architecture": "x64",
+  "abiVersion": 1,
+  "nodeApiVersion": 8,
+  "artifact": "KodMercek-windows-x64.node",
+  "artifactSha256": "339cba21ba9c10c8a5b79cf198f8003b31e100319bcea43299d0486e33bdcd9d"
+}

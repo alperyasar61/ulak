@@ -1,0 +1,5 @@
+interface:
+  display_name: "KodMercek analysis optimization"
+  short_description: "Optimize analysis with preserved Evidence and measured costs"
+  default_prompt: "Use $KodMercek-analysis-optimization to find and verify a concrete analysis bottleneck while preserving correctness and Evidence."
+

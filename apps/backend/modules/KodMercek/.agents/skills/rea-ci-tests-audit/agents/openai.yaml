@@ -1,0 +1,5 @@
+interface:
+  display_name: "KodMercek CI and tests audit"
+  short_description: "Audit CI/test correctness and measured performance"
+  default_prompt: "Use $KodMercek-ci-tests-audit to investigate CI and test correctness, drift, and performance before proposing changes."
+

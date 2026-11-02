@@ -1,7 +1,8 @@
 packages:
-  - .
+  - "apps/*"
 
 onlyBuiltDependencies:
   - 7zip-bin
+  - esbuild
 
 ignoredBuiltDependencies: []

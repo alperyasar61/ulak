@@ -1,0 +1,108 @@
+import { mkdir, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+
+/** Write a source-owned Electron boundary fixture; none of its code is executed. */
+export const writeElectronBoundaryFixture = async (
+  root: string,
+): Promise<void> => {
+  await Promise.all([
+    mkdir(join(root, "renderer"), { recursive: true }),
+    mkdir(join(root, "utility"), { recursive: true }),
+    mkdir(join(root, "native"), { recursive: true }),
+  ]);
+  await Promise.all([
+    writeFile(
+      join(root, "package.json"),
+      JSON.stringify({
+        name: "KodMercek-electron-boundary-fixture",
+        version: "1.0.0",
+        main: "main.js",
+        renderer: "renderer/index.html",
+      }),
+    ),
+    writeFile(join(root, "main.js"), MAIN_SOURCE),
+    writeFile(join(root, "preload.js"), PRELOAD_SOURCE),
+    writeFile(join(root, "renderer", "renderer.js"), RENDERER_SOURCE),
+    writeFile(
+      join(root, "renderer", "index.html"),
+      "<script src='./renderer.js'></script>",
+    ),
+    writeFile(join(root, "utility", "worker.js"), UTILITY_SOURCE),
+    writeFile(join(root, "native", "addon.node"), Buffer.from([0, 1, 2, 3])),
+  ]);
+};
+
+const MAIN_SOURCE = String.raw`
+const path = require("node:path");
+const { BrowserWindow, ipcMain, utilityProcess } = require("electron");
+const { read, write: nativeWrite } = require("./native/addon.node");
+
+new BrowserWindow({
+  width: 900,
+  webPreferences: {
+    preload: path.join(__dirname, "preload.js"),
+    nodeIntegration: true,
+    contextIsolation: false,
+    sandbox: false,
+    webSecurity: false,
+  },
+});
+new BrowserWindow({
+  webPreferences: {
+    nodeIntegration: false,
+    contextIsolation: true,
+    sandbox: true,
+  },
+});
+new BrowserWindow(windowOptions);
+
+ipcMain.handle("KodMercek:read", async (event, key) => {
+  if (!event.senderFrame.url.startsWith("file://")) throw new Error("denied");
+  return read(key);
+});
+ipcMain.on("KodMercek:write", (event, value) => {
+  if (event.sender.getURL() !== "file://fixture/index.html") return;
+  nativeWrite(value);
+});
+ipcMain.handle("KodMercek:ambiguous", async () => 1);
+ipcMain.handle("KodMercek:ambiguous", async () => 2);
+ipcMain.handle(dynamicChannel, dynamicHandler);
+
+utilityProcess.fork("./utility/worker.js", [], { serviceName: "fixture-db" });
+module.exports.nativeRead = require("./native/addon.node").read;
+
+globalThis.__rea_electron_fixture_executed = true;
+throw new Error("Electron boundary fixture must never execute");
+`;
+
+const PRELOAD_SOURCE = String.raw`
+const { contextBridge, ipcRenderer } = require("electron");
+const { read, write } = require("./native/addon.node");
+
+contextBridge.exposeInMainWorld("reaApi", {
+  read: (key) => ipcRenderer.invoke("KodMercek:read", key),
+  nested: {
+    write: (value) => ipcRenderer.send("KodMercek:write", value),
+  },
+  nativeRead: read,
+  nativeWrite: write,
+});
+contextBridge.exposeInMainWorld(dynamicApiKey, dynamicApi);
+ipcRenderer.on("KodMercek:event", (_event, value) => console.log(value));
+ipcRenderer.invoke("KodMercek:ambiguous");
+ipcRenderer.invoke("KodMercek:missing");
+ipcRenderer.invoke(dynamicChannel);
+`;
+
+const RENDERER_SOURCE = String.raw`
+const { ipcRenderer } = require("electron");
+ipcRenderer.invoke("KodMercek:read", "renderer-key");
+ipcRenderer.send("KodMercek:write", "renderer-value");
+ipcRenderer.on("KodMercek:event", (_event, value) => console.log(value));
+`;
+
+const UTILITY_SOURCE = String.raw`
+const addon = require("../native/addon.node");
+module.exports = addon;
+`;
+
