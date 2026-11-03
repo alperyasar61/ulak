@@ -34,7 +34,7 @@ export function renderDossier(input: DossierInput) {
   push(`- Bulguları kanıt ve güven düzeyiyle doğrula; belirsizlikleri açıkça belirt, doğrulanmamış iddiaları kesin açık gibi sunma.`, "");
   push(`- Kullanıcı açıkça izin vermeden dosya değiştirme, komut çalıştırma, gerçek servislere istek gönderme veya veriyi harici bir AI/servise aktarma.`, "");
   push(`- Sırları veya kişisel verileri yanıta kopyalama. Önce mevcut yapıyı ve testleri koru; değişiklik gerekiyorsa en küçük güvenli düzeltmeyi öner ve doğrula.`, "");
-  push(`- Kullanıcı onayı olmadan ortak güvenlik öğrenme notlarını veya kalıcı proje verisini değiştirme.`, "");
+  push(`- Kullanıcı onayı olmadan yerel öğrenme notlarını veya kalıcı proje verisini değiştirme.`, "");
   push(`- Eksik gereksinim ya da riskli/geri döndürülemez işlem varsa varsayım yapma; kullanıcıdan onay iste.`, "");
   push(`## 1. Künye`, "");
   push(...table(["Alan", "Değer"], [

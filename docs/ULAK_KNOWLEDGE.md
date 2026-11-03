@@ -1,4 +1,4 @@
-# ULAK ortak öğrenme notları
+# ULAK yerel öğrenme notları
 
 Bu dosya ULAK'ın farklı projelerde yeniden kullanabileceği genel güvenlik ve inceleme ilkelerini belgeler. İncelenen ürünlerin adı, kaynak kodu, dosya yolları, bulgu kanıtı, servis adresi, sırları veya projeye özgü mimarisi buraya eklenmez.
 
@@ -17,8 +17,12 @@ Bu dosya ULAK'ın farklı projelerde yeniden kullanabileceği genel güvenlik ve
 
 Backend'in makinece kullandığı sabit kural kataloğu [`learning.ts`](../apps/backend/src/learning.ts) içindedir. Yeni bir sabit kural ancak ürünlerden bağımsız, birden fazla projeye uygulanabilir ve kanıtla desteklenen bir ilkeyse eklenmelidir. Kuralı bir testle doğrulayın ve bu dosyayı da güncelleyin.
 
-Her kod incelemesi veya API isteği tamamlandığında kullanıcıya katkı isteğe bağlı olarak sunulur. Kullanıcı notu ve yerel kaydı açıkça onaylamadıkça serbest biçimli not saklanmaz. Onaydan önce kategori, uzunluk, URL/e-posta/IP/anahtar/dosya yolu/kod işaretleri ve ilgili proje/çalışma alanı adları kontrol edilir; şüpheli içerik reddedilir. Notlar `ulak_shared_knowledge` tablosunda tekrar kimliğiyle saklanıp benzer katkılarda birleştirilir. Bu tabloya kaynak proje veya çalışma alanı kimliği bağlanmaz.
+Her kod incelemesi veya API isteği tamamlandığında kullanıcıya isteğe bağlı bir not ekleme seçeneği sunulur. Kullanıcı notu ve yerel kaydı açıkça onaylamadıkça serbest biçimli not saklanmaz. Onaydan önce kategori, uzunluk, URL/e-posta/IP/anahtar/dosya yolu/kod işaretleri ve ilgili proje/çalışma alanı adları kontrol edilir; şüpheli içerik reddedilir. Notlar `ulak_shared_knowledge` tablosunda tekrar kimliğiyle saklanıp benzer notlarda birleştirilir. Bu tabloya kaynak proje veya çalışma alanı kimliği bağlanmaz.
 
 `ulak_security_learning` tablosu yalnızca ULAK'ın önceden tanımladığı kural kimliklerini ve sayaçlarını tutar. İki öğrenme tablosu da proje/API çalışma alanı silindiğinde korunur; **Bulgular** sekmesindeki notları silme işlemi her ikisini temizler. Gelecekteki projeler bu notları bağlam olarak görebilir.
 
-Notlar yalnızca seçili ULAK kurulumunun veritabanında kalır. Uzak MySQL veritabanı yapılandırılmışsa, notlar da o veritabanına kaydedilir. Bu mekanizma GitHub'a, EVREN'e veya başka dış servise veri göndermez; model eğitimi, otomatik kural değişikliği ya da serbest biçimli otomatik bilgi üretimi değildir.
+Notlar yalnızca seçili ULAK kurulumunun veritabanında kalır. Uzak MySQL veritabanı yapılandırılmışsa, notlar da o veritabanına kaydedilir. Bu mekanizma hiçbir dış servise, üçüncü tarafa veya AI sağlayıcısına veri göndermez; model eğitimi, otomatik kural değişikliği ya da serbest biçimli otomatik bilgi üretimi değildir.
+
+## Neler kaydedilmez?
+
+Notlar yalnızca genel, projeden bağımsız ilkeler içindir. Kişisel veri, müşteri/çalışan bilgisi, proje adı veya kaynak kodu, dosya yolu, bulgu kanıtı, servis adresi, token, API anahtarı ve benzeri hassas bilgi bu alana yazılmamalıdır. Backend bu kalıpları otomatik olarak reddeder; yine de sorumluluk kullanıcıdadır. Özel veya gizli bilgi girmeyin.

@@ -136,7 +136,7 @@ export default function App() {
         localReport: { ...item.localReport, learningNotes: result.learningNotes },
       })));
       setKnowledgeContext(null);
-      notify("Genel öğrenme notu yalnızca bu ULAK kurulumunun ortak bilgi alanına kaydedildi.");
+      notify("Genel öğrenme notu yalnızca bu ULAK kurulumunun yerel veritabanına kaydedildi.");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Öğrenme notu kaydedilemedi.";
       setKnowledgeError(message);
@@ -273,14 +273,14 @@ export default function App() {
   }
 
   async function clearSecurityLearningNotes() {
-    if (!window.confirm("ULAK’ın tüm anonimleştirilmiş ortak güvenlik notları silinsin mi?")) return;
+    if (!window.confirm("Bu ULAK kurulumundaki tüm anonimleştirilmiş öğrenme notları silinsin mi?")) return;
     try {
       await api.clearSecurityLearningNotes();
       setProjects((current) => current.map((item) => ({
         ...item,
         localReport: { ...item.localReport, learningNotes: [] },
       })));
-      notify("Anonimleştirilmiş ortak notlar silindi.");
+      notify("Anonimleştirilmiş öğrenme notları silindi.");
     } catch (error) {
       notify(error instanceof Error ? error.message : "Notlar silinemedi.", "error");
     }
@@ -444,7 +444,7 @@ export default function App() {
   }
 
   async function removeApiWorkspace() {
-    if (!apiWorkspace || !window.confirm(`“${apiWorkspace.name}” çalışma alanı, istekleri, şifreli sırları ve API işlem kayıtları kalıcı silinsin mi? Ortak öğrenme notları korunur.`)) return;
+    if (!apiWorkspace || !window.confirm(`“${apiWorkspace.name}” çalışma alanı, istekleri, şifreli sırları ve API işlem kayıtları kalıcı silinsin mi? Yerel öğrenme notları korunur.`)) return;
     try {
       await api.deleteApiWorkspace(apiWorkspace.id);
       const remaining = apiWorkspaces.filter((item) => item.id !== apiWorkspace.id);
@@ -564,7 +564,7 @@ export default function App() {
   }
 
   async function removeProject() {
-    if (!project || !window.confirm("Bu projenin kaydı, yüklenen arşivi ve projeye bağlı inceleme verileri kalıcı olarak silinsin mi? Ortak, genel güvenlik öğrenme notları korunur.")) return;
+    if (!project || !window.confirm("Bu projenin kaydı, yüklenen arşivi ve projeye bağlı inceleme verileri kalıcı olarak silinsin mi? Genel güvenlik öğrenme notları korunur.")) return;
     setBusy("delete");
     try {
       const result = await api.deleteProject(project.id);
@@ -789,9 +789,9 @@ export default function App() {
             <button className="icon-button" onClick={() => setKnowledgeContext(null)} disabled={knowledgeBusy} aria-label="Şimdi değil"><X size={18} /></button>
           </div>
           <div className="eyebrow"><span className="signal-line" /> İSTEĞE BAĞLI · YEREL ÖĞRENME</div>
-          <h2 id="learning-title">ULAK’ın ortak bilgisini <em>geliştirelim mi?</em></h2>
-          <p className="modal-description">{knowledgeContext.kind === "api" ? "API isteği tamamlandı." : "Yerel proje incelemesi tamamlandı."} Başka projelerde de işe yarayabilecek, projeden bağımsız genel bir analiz dersi paylaşmak ister misiniz? Bu tamamen isteğe bağlıdır; not yalnızca bu ULAK kurulumunun ortak veritabanına kaydedilir.</p>
-          <div className="data-transfer-note"><ShieldCheck size={17} /><p><strong>Dışarı gönderilmez.</strong> Proje adı/kodu, dosya yolu, bulgu kanıtı, kullanıcı/servis bilgisi, token ve API bilgisi saklamayın. Notlar otomatik güvenlik kontrollerinden geçer; şüpheli içerik reddedilir. “Şimdi değil” seçerseniz hiçbir not eklenmez.</p></div>
+          <h2 id="learning-title">Yerel bilgi birikimini <em>geliştirelim mi?</em></h2>
+          <p className="modal-description">{knowledgeContext.kind === "api" ? "API isteği tamamlandı." : "Yerel proje incelemesi tamamlandı."} Başka projelerde de işe yarayabilecek, projeden bağımsız genel bir analiz dersi eklemek ister misiniz? Bu tamamen isteğe bağlıdır; not yalnızca bu ULAK kurulumunun yerel veritabanına yazılır ve başka hiçbir yere aktarılmaz.</p>
+          <div className="data-transfer-note"><ShieldCheck size={17} /><p><strong>Yalnızca yerel kayıt.</strong> Not bu kurulumun veritabanında kalır; hiçbir dış servise, sunucuya veya üçüncü tarafa iletilmez. Kişisel veri, müşteri/çalışan bilgisi, proje adı veya kodu, dosya yolu, bulgu kanıtı, servis adresi, token ve API bilgisi yazmayın. Notlar otomatik güvenlik kontrollerinden geçer; şüpheli içerik reddedilir. “Şimdi değil” seçerseniz hiçbir not eklenmez.</p></div>
           <form onSubmit={submitSharedLearningNote}>
             <label className="field-label">GENEL KONU
               <select value={knowledgeCategory} onChange={(event) => setKnowledgeCategory(event.target.value as SharedKnowledgeCategory)}>
@@ -808,7 +808,7 @@ export default function App() {
             <label className="field-label">BAŞKA PROJELERDE DE İŞE YARAYACAK ÖNERİ
               <textarea value={knowledgeRecommendation} onChange={(event) => setKnowledgeRecommendation(event.target.value)} maxLength={600} rows={4} placeholder="Projeye özel ayrıntı vermeden, genel olarak neye dikkat edilmeli?" />
             </label>
-            <label className="learning-consent"><input type="checkbox" checked={knowledgeConsent} onChange={(event) => setKnowledgeConsent(event.target.checked)} /><span>Yalnızca bu genel notun yerel ULAK ortak bilgi alanına kaydedilmesini onaylıyorum. GitHub’a veya başka dış servise gönderilmeyecek.</span></label>
+            <label className="learning-consent"><input type="checkbox" checked={knowledgeConsent} onChange={(event) => setKnowledgeConsent(event.target.checked)} /><span>Yalnızca bu genel notun bu ULAK kurulumunun yerel veritabanına kaydedilmesini onaylıyorum. Not hiçbir dış servise gönderilmez ve yalnızca bu kurulumda görünür.</span></label>
             {knowledgeError && <div className="project-upload-error" role="alert"><TriangleAlert size={16} /><span>{knowledgeError}</span></div>}
             <div className="learning-actions">
               <button type="button" className="quiet-button" onClick={() => setKnowledgeContext(null)} disabled={knowledgeBusy}>Şimdi değil</button>
@@ -1182,20 +1182,20 @@ function Findings({ project, onRunAI, onUpdateState, onClearLearningNotes, busy,
           </div>
           {learningNotes.length ? <button className="quiet-button" onClick={onClearLearningNotes}><Trash2 size={14} /> Notları sil</button> : null}
         </div>
-        <p className="muted-text">Bu ULAK kurulumunda önceki incelemelerdeki genel güvenlik kuralları ve açık rızayla eklenen proje dışı notlar gösterilir. Proje adı, kaynak kodu, dosya yolu, servis bilgisi ve sır öğrenme notuna kaydedilmez. Yeni notlar başka projelerde bağlam olarak gösterilir; otomatik kural veya kod değişikliği başlatmaz.</p>
+        <p className="muted-text">Bu ULAK kurulumunda önceki incelemelerdeki genel güvenlik kuralları ve açık rızayla eklenen proje dışı notlar gösterilir. Notlar yalnızca bu kurulumun yerel veritabanında tutulur; başka bir kuruluma, sunucuya veya üçüncü tarafa aktarılmaz. Kişisel veri, müşteri bilgisi, proje adı, kaynak kodu, dosya yolu, servis bilgisi ve sır öğrenme notuna kaydedilmez. Yeni notlar başka projelerde bağlam olarak gösterilir; otomatik kural veya kod değişikliği başlatmaz.</p>
         {learningNotes.length ? (
           <div className="finding-stack">
             {learningNotes.map((note) => (
               <article key={note.id} className="finding-card">
                 <div className="finding-main">
-                  <div className="finding-title-row"><span className="finding-area">{note.source === "shared" ? `Onaylı ortak not · ${note.contributions ?? 1} katkı` : `Önceki incelemelerde görüldü · ${note.scansSeen} tarama`}</span></div>
+                  <div className="finding-title-row"><span className="finding-area">{note.source === "shared" ? `Onaylı yerel not · ${note.contributions ?? 1} kez eklendi` : `Önceki incelemelerde görüldü · ${note.scansSeen} tarama`}</span></div>
                   <h3>{note.title}</h3>
                   <p>{note.recommendation}</p>
                 </div>
               </article>
             ))}
           </div>
-        ) : <p className="muted-text">Henüz ortak not yok. Yeni bir genel not yalnızca inceleme sonunda açıkça onay verirseniz kaydedilir.</p>}
+        ) : <p className="muted-text">Henüz öğrenme notu yok. Yeni bir genel not yalnızca inceleme sonunda açıkça onay verirseniz bu kurulumun yerel veritabanına kaydedilir.</p>}
       </section>
       <section className="ai-consent-card">
         <div className="ai-consent-symbol"><WandSparkles size={19} /></div>

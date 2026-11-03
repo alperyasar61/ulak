@@ -676,7 +676,7 @@ app.delete("/api/projects/:id", async (req, res) => {
     if (row.archive_key) await deleteObject(row.archive_key);
     const deleted = await permanentlyDeleteProject(row.id, ownerHash);
     if (!deleted) return res.status(404).json({ error: "Proje bulunamadı." });
-    res.json({ ok: true, warning: "Proje kaydı, arşivi ve projeye bağlı inceleme verileri kalıcı olarak silindi. Ortak öğrenme notları korundu." });
+    res.json({ ok: true, warning: "Proje kaydı, arşivi ve projeye bağlı inceleme verileri kalıcı olarak silindi. Yerel öğrenme notları korundu." });
   } catch (error) { const failure = jsonError(error); res.status(failure.status).json({ error: failure.message }); }
 });
 

@@ -62,7 +62,7 @@ function aiGuidance(): string[] {
     "- Kullanıcı açıkça izin vermeden dosya değiştirme, komut çalıştırma, gerçek servislere/proxy'ye istek gönderme veya veriyi harici bir AI/servise aktarma.",
     "- Token, parola, kişisel veri veya diğer sırları üretme, tahmin etme ya da yanıta kopyalama. Bu dışa aktarımda bilinen gizli alanlar maskelenmiştir.",
     "- Önce mevcut yapıyı ve testleri koru; değişiklik gerekiyorsa en küçük güvenli düzeltmeyi öner, etkisini açıkla ve ilgili testlerle doğrula.",
-    "- Kullanıcı onayı olmadan ortak güvenlik öğrenme notlarını veya kalıcı proje verisini değiştirme.",
+    "- Kullanıcı onayı olmadan yerel öğrenme notlarını veya kalıcı proje verisini değiştirme.",
     "- Eksik gereksinim veya riskli/geri döndürülemez işlem varsa varsayım yapma; kullanıcıdan onay iste.",
     "",
   ];
