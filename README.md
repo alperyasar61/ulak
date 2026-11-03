@@ -89,9 +89,14 @@ Arayüzün sağ üstündeki **EVREN** düğmesi EVREN LLM ağ geçidinin model l
 
 ## Lisans
 
-MIT — ayrıntılar [`LICENSE`](LICENSE) dosyasındadır. Gömülü üçüncü taraf bileşenlerin lisansları
+MIT — ayrıntılar [`LICENSE`](LICENSE) dosyasındadır. Depo herkese açıktır: koşullara uyarak
+herkes ULAK'ı kullanabilir, inceleyebilir, değiştirebilir ve geliştirilmesine katkıda bulunabilir.
+Gömülü üçüncü taraf bileşenlerin lisansları
 `apps/backend/modules/KodMercek/LICENSE` ve `apps/backend/modules/KodMercek/third_party/*/LICENSE*`
-altında ayrıca listelenmiştir.
+altında ayrıca listelenmiştir. `tools/` altındaki ikili araçların kaynağı, sürümü ve SHA-256
+özetleri [`tools/THIRD_PARTY_NOTICES.md`](tools/THIRD_PARTY_NOTICES.md) ile
+[`tools/tools-manifest.json`](tools/tools-manifest.json) dosyalarında belgelenmiştir;
+`node scripts/verify-tools.mjs` ile doğrulanabilir.
 
 ## Araştırma kaynakları
 
@@ -114,6 +119,10 @@ Sistemde `objdump`/`rizin` kurulu olmasına gerek yoktur; ikisi de depoda taşı
 `apps/backend/src/env.ts`, `REA_OBJDUMP_COMMAND` / `REA_RIZIN_COMMAND` tanımlı değilse bu yolları
 `repoRoot`a göre çözer ve kendisi atar. Farklı bir kurulumu tercih ederseniz bu iki
 değişkeni `.env` içinde elle verip gömülü araçları devre dışı bırakabilirsiniz.
+
+Bu ikili dosyalar upstream yayınlarından değiştirilmeden alınmıştır; kaynak adresleri,
+sürümleri, lisansları ve SHA-256 özetleri [`tools/THIRD_PARTY_NOTICES.md`](tools/THIRD_PARTY_NOTICES.md)
+dosyasındadır. Bütünlük denetimi: `pnpm verify:tools`.
 
 ### Windows native eklentisi
 

@@ -1,0 +1,2006 @@
+{
+  "generatedBy": "scripts/generate-tools-manifest.mjs",
+  "fileCount": 400,
+  "files": [
+    {
+      "path": "binutils/libiconv-2.dll",
+      "size": 1751671,
+      "sha256": "1324b9d8c394b6012c80ec20691eca95b5046c1a06c5bcc7d26966efd9ca2e28"
+    },
+    {
+      "path": "binutils/libintl-8.dll",
+      "size": 457443,
+      "sha256": "51e1279b2aefb1e7ec51ad0b47d0e7a3fc39d30d26a6e919518d8bdabe682118"
+    },
+    {
+      "path": "binutils/libwinpthread-1.dll",
+      "size": 72171,
+      "sha256": "2512e8e9ceecd1c47d894a3cd38b895e1f40f3d42d0ccebc2a1521ee2fe496a9"
+    },
+    {
+      "path": "binutils/libzstd.dll",
+      "size": 1182222,
+      "sha256": "f010307f121a1f2b83ddd93ea156a618c29ebb88c2d53a2fe3e4886124438f45"
+    },
+    {
+      "path": "binutils/objdump.exe",
+      "size": 2541582,
+      "sha256": "31e0217183b137c154df9fb87e0a1e18c85cac3d61cc3ca71083ca70d965cc8c"
+    },
+    {
+      "path": "binutils/zlib1.dll",
+      "size": 120846,
+      "sha256": "84bd7628d3c14aea881b7ec2197035b7c0a5f64ad6884e01f8d1fcff0021070f"
+    },
+    {
+      "path": "rizin/rizin.exe",
+      "size": 11776,
+      "sha256": "4e23543e17d41242152cd38f8bbeafd161ce50af970848794de407f86cc5cca7"
+    },
+    {
+      "path": "rizin/rz-ar.exe",
+      "size": 9728,
+      "sha256": "1f21650c5285bf70526f6a5441f9da29a8ab6424b1db3763467d9b1c9d209cf1"
+    },
+    {
+      "path": "rizin/rz-asm.exe",
+      "size": 9728,
+      "sha256": "b7c9dc43e2978cb61473237655f1448b7f0fd8f09856e79c3a3ffb35b12c7bb8"
+    },
+    {
+      "path": "rizin/rz-ax.exe",
+      "size": 9728,
+      "sha256": "f2012c40444f1f03673ddb10af02fe7d64d59ebab887cabcce9b83a8e30a0ccd"
+    },
+    {
+      "path": "rizin/rz-bin.exe",
+      "size": 9728,
+      "sha256": "1610095273e80d3dd93c68f81c8d4114d01510f6fc0c4335af5a04299c1c0236"
+    },
+    {
+      "path": "rizin/rz-diff.exe",
+      "size": 9728,
+      "sha256": "32bac6269e485942c3e82d7c179ed137f213cfef81309519762623e9dda58bb9"
+    },
+    {
+      "path": "rizin/rz-find.exe",
+      "size": 9728,
+      "sha256": "e1b90b3060bbd2f3673639d3ff3fc97cf23d354c08ee71cab91a9e1751e40909"
+    },
+    {
+      "path": "rizin/rz-gg.exe",
+      "size": 9728,
+      "sha256": "dc18f81bf4d47bba2ef8a8a02b4573312e12723c189f9cdd11e98d69512daf93"
+    },
+    {
+      "path": "rizin/rz-hash.exe",
+      "size": 9728,
+      "sha256": "3b0e6a80b49f88a5bc3a4bcf86134eb731193c6d27e9a2bbeabb9a1b2c513a69"
+    },
+    {
+      "path": "rizin/rz-run.exe",
+      "size": 9728,
+      "sha256": "c548e7fe558ef30b28612b0912df3b633b60ce76e9e3da45e325d41483f8b54c"
+    },
+    {
+      "path": "rizin/rz-sign.exe",
+      "size": 9728,
+      "sha256": "695d779f0f6edd2e5e615bd722e4a376c597c6cc2960ac672749bf84378ca283"
+    },
+    {
+      "path": "rizin/rz-test.exe",
+      "size": 56832,
+      "sha256": "388f897c9e737c5306612fbe022d0a0f1b01b9549acb65d7ab749a918862e905"
+    },
+    {
+      "path": "rizin/rz_arch-0.9.dll",
+      "size": 44615680,
+      "sha256": "88560507cfc326ec62528b2a7655b73e16cae590462644e36527d76ea9fff2b1"
+    },
+    {
+      "path": "rizin/rz_bin-0.9.dll",
+      "size": 2292736,
+      "sha256": "283f61e58f14aab373dfc5bf7461a76e6e3f749847a8047b9211fcc914110a37"
+    },
+    {
+      "path": "rizin/rz_config-0.9.dll",
+      "size": 50176,
+      "sha256": "baf683c966c3a9b47d1fcea7e14303948b1f0c25d5a1b204d06e729b7211b2da"
+    },
+    {
+      "path": "rizin/rz_cons-0.9.dll",
+      "size": 157696,
+      "sha256": "4bb86d93e8cf089ecdc82c615ac246b92f7cd4fe95efe394d50dc6bd5f7b5482"
+    },
+    {
+      "path": "rizin/rz_core-0.9.dll",
+      "size": 2778112,
+      "sha256": "cf7e73565f176d32eef74ed21072f139a154d427af659dbf6669fd64d82aabeb"
+    },
+    {
+      "path": "rizin/rz_crypto-0.9.dll",
+      "size": 99840,
+      "sha256": "ba59bb210a4271dac89db6f594cab3ed69d510c7a11ba09d781a9e36f83c8825"
+    },
+    {
+      "path": "rizin/rz_debug-0.9.dll",
+      "size": 272896,
+      "sha256": "9d03c186fd37490bf28aec1d8a0baa080c540affb82f5be423ece19ea68bcf06"
+    },
+    {
+      "path": "rizin/rz_demangler-0.9.dll",
+      "size": 233472,
+      "sha256": "74887de8bfb396b8f7378602e106a00c0c1f48831dfb439e45de817888ccd6e1"
+    },
+    {
+      "path": "rizin/rz_diff-0.9.dll",
+      "size": 38400,
+      "sha256": "3916ab6dfb7f818bbcd4661fd6ea8f1a938bc6a1d9c61b9980681836c004c206"
+    },
+    {
+      "path": "rizin/rz_egg-0.9.dll",
+      "size": 62464,
+      "sha256": "3396b665df0337c0ad93518f1f31a15686ff1ddd1032b6fc602eae7e17fb2f56"
+    },
+    {
+      "path": "rizin/rz_flag-0.9.dll",
+      "size": 38400,
+      "sha256": "35f77e81dfeaf640e5af1a4a712420633b0ecb0480994fce793b3599cb46cf07"
+    },
+    {
+      "path": "rizin/rz_hash-0.9.dll",
+      "size": 330240,
+      "sha256": "0c4b36963ab90a71010267ea8dc77d0d4cf2543af45e70811aa266b8ca1cefb0"
+    },
+    {
+      "path": "rizin/rz_il-0.9.dll",
+      "size": 162816,
+      "sha256": "7031486203b64419d8ac734c4c5dd72c3cc882f5112a8779c8b702271d9b7c16"
+    },
+    {
+      "path": "rizin/rz_io-0.9.dll",
+      "size": 313856,
+      "sha256": "0d2746918505bacb05471816fd72362ae7026ecb535ac310bba0dd5990940ddd"
+    },
+    {
+      "path": "rizin/rz_lang-0.9.dll",
+      "size": 19968,
+      "sha256": "b2fd90369b7f078f09d1bb6a50554826df574d4bdb65077134b2777e3a93fc94"
+    },
+    {
+      "path": "rizin/rz_magic-0.9.dll",
+      "size": 40448,
+      "sha256": "3cc6d1386cdc017ee0c40a3b8235b45f75cb669c8d4b4a6e664904a1035c9d83"
+    },
+    {
+      "path": "rizin/rz_main-0.9.dll",
+      "size": 202752,
+      "sha256": "1b3ab5ac3a5cae954a56d4863f8f7bf4792d74dfbc9ed9ab23d07790a533a505"
+    },
+    {
+      "path": "rizin/rz_mark-0.9.dll",
+      "size": 20992,
+      "sha256": "12678c2f75a4324886d111b2648e9e2d2669e186f273b6f6578c6289d2bfea47"
+    },
+    {
+      "path": "rizin/rz_reg-0.9.dll",
+      "size": 42496,
+      "sha256": "15000cabeea5b3774399ddf8017bde106ea334510be74c0b712bb4a00b0906c3"
+    },
+    {
+      "path": "rizin/rz_search-0.9.dll",
+      "size": 73728,
+      "sha256": "60d291a0edb4b11f1b421fdcb3bdd0fcadfa1e7c83ff64f8bf637a47e56b96a8"
+    },
+    {
+      "path": "rizin/rz_sign-0.9.dll",
+      "size": 58880,
+      "sha256": "d320e4f39dd1a5f9db9e5844fd1dd59cfa96719a2511ff0115a522ec7f409156"
+    },
+    {
+      "path": "rizin/rz_socket-0.9.dll",
+      "size": 42496,
+      "sha256": "0b84084d91f02a3e5b7afc426413c21413fc66cf9ae318548f1b698421398128"
+    },
+    {
+      "path": "rizin/rz_syscall-0.9.dll",
+      "size": 17920,
+      "sha256": "fdc707592cefaf0fc15d8d566e81ae8399cb94581930585bae38409b5d921737"
+    },
+    {
+      "path": "rizin/rz_type-0.9.dll",
+      "size": 916480,
+      "sha256": "04b1f60c72d8671bdd0fd0f028799f89c0ecefe4d673bb13a4c9ed9c11599bf4"
+    },
+    {
+      "path": "rizin/rz_util-0.9.dll",
+      "size": 2797056,
+      "sha256": "c899a40d9c47e51f59fab4a715f99ebdce1b8d0b6b0084f1779880e2bc55afe2"
+    },
+    {
+      "path": "rizin/share/arch/platforms/arm-arm1176-bcm2835.sdb",
+      "size": 9701,
+      "sha256": "00ce0842843eaa622278cf3fde7ba39b9ba19d86784ad1c01a9d8c94427bf47e"
+    },
+    {
+      "path": "rizin/share/arch/platforms/arm-cortexA72-bcm2711.sdb",
+      "size": 11080,
+      "sha256": "671704ebe2da192e2b9fb4907d16a7b8d735f6a8337300acadf8666f5502033e"
+    },
+    {
+      "path": "rizin/share/arch/platforms/arm-cortexA8-omap3430.sdb",
+      "size": 278411,
+      "sha256": "79b0d474c30d7ef419e1b215be836a1cd69fd7da3edcb62e99af47edfef462de"
+    },
+    {
+      "path": "rizin/share/arch/platforms/x86-generic-generic.sdb",
+      "size": 6057,
+      "sha256": "b8ddbc258f67a6c13f71371996c9695e16d67ba56cbbcae593a6ca2f254abd64"
+    },
+    {
+      "path": "rizin/share/asm/cpus/avr-ATTiny48.sdb",
+      "size": 6649,
+      "sha256": "e353dda4aca59c216da108128e9399b54c7b4df0690f6641f20e77dc94d56cd9"
+    },
+    {
+      "path": "rizin/share/asm/cpus/avr-ATTiny88.sdb",
+      "size": 6649,
+      "sha256": "1ef68e5415492dfb0b962331a511f46e2331aed2af4f3693845200f07d9e24d9"
+    },
+    {
+      "path": "rizin/share/asm/cpus/avr-ATmega1280.sdb",
+      "size": 1490,
+      "sha256": "eca1ea3e1c14ee7c53d875106d08ec634817a4a053d9d9bf0416d3e4fe3cecbc"
+    },
+    {
+      "path": "rizin/share/asm/cpus/avr-ATmega1281.sdb",
+      "size": 1490,
+      "sha256": "eca1ea3e1c14ee7c53d875106d08ec634817a4a053d9d9bf0416d3e4fe3cecbc"
+    },
+    {
+      "path": "rizin/share/asm/cpus/avr-ATmega16.sdb",
+      "size": 11566,
+      "sha256": "b4a48e30b86bafbfe980c01a9d92b3d225140ec61ee1c5ef0b4ca0e5b97426ce"
+    },
+    {
+      "path": "rizin/share/asm/cpus/avr-ATmega168.sdb",
+      "size": 7317,
+      "sha256": "81d8060e1289f08fbcea653b6f93c7f2196eb270fa700643bbc728214e277dc6"
+    },
+    {
+      "path": "rizin/share/asm/cpus/avr-ATmega2560.sdb",
+      "size": 1490,
+      "sha256": "4948882fb5e7ecb95f1abbb3a1ac17dbbb575898eaf8ba9ca32f45d6a85dda02"
+    },
+    {
+      "path": "rizin/share/asm/cpus/avr-ATmega2561.sdb",
+      "size": 1490,
+      "sha256": "4948882fb5e7ecb95f1abbb3a1ac17dbbb575898eaf8ba9ca32f45d6a85dda02"
+    },
+    {
+      "path": "rizin/share/asm/cpus/avr-ATmega640.sdb",
+      "size": 1490,
+      "sha256": "8b7304678138512c9fb03e92866c2de911d0c931178115b9f60c4cf242ee5a2a"
+    },
+    {
+      "path": "rizin/share/asm/cpus/avr-ATmega8.sdb",
+      "size": 1486,
+      "sha256": "16f981e6480c3d9971c0472ce62abb1f44a07e56b56086bf41f2191bec6c6971"
+    },
+    {
+      "path": "rizin/share/asm/cpus/avr-ATmega88.sdb",
+      "size": 1485,
+      "sha256": "21c0c8c454c868c707eae7f60ffdfa862935404e17da3112a7ca466b7a1b2023"
+    },
+    {
+      "path": "rizin/share/asm/cpus/avr-ATxmega128a4u.sdb",
+      "size": 56492,
+      "sha256": "7b77f43eaa63ea48c55811c2a04eb515f0bab860ca3c49d3879137558fcc55d3"
+    },
+    {
+      "path": "rizin/share/asm/cpus/c166-c166-generic.sdb",
+      "size": 32134,
+      "sha256": "0008fadf5401f4718a2299d7a0c0c6b43f735c1bf51c744f97dd8851763fff05"
+    },
+    {
+      "path": "rizin/share/cons/ayu",
+      "size": 2307,
+      "sha256": "16f4bfa01ac7ff8eb95b9c97b5292beb5d1883632784dd955c4b9bf11678fa46"
+    },
+    {
+      "path": "rizin/share/cons/basic",
+      "size": 1022,
+      "sha256": "492e822d8a5022d37bdc6fc7375235eaf1cd506f0e7d3fec38eaab520b74db8c"
+    },
+    {
+      "path": "rizin/share/cons/behelit",
+      "size": 1679,
+      "sha256": "3548782888c59dfbbba8f8d28a9dbb6c2f1d87ef3fcc1d64619378bb12d9096f"
+    },
+    {
+      "path": "rizin/share/cons/bold",
+      "size": 1448,
+      "sha256": "8f74591025ba68a556a15db7d0e4a8426c6f033588f61326bd63258a18dd3da7"
+    },
+    {
+      "path": "rizin/share/cons/bright",
+      "size": 1705,
+      "sha256": "44c98aa0c6547d82ce24dada93d514af49821fa7487ee8329a9e1a4afa7795c8"
+    },
+    {
+      "path": "rizin/share/cons/cga",
+      "size": 1447,
+      "sha256": "36957e12d923b07310c804a86ba2984b0c5a47a987db4b14bb7099b384362fd4"
+    },
+    {
+      "path": "rizin/share/cons/consonance",
+      "size": 1387,
+      "sha256": "e2eb523ef46e1ee69bbde8d3a227c5c91e08a73f5789948ed6fd18bcf24a30d6"
+    },
+    {
+      "path": "rizin/share/cons/cutter",
+      "size": 1649,
+      "sha256": "e6e6947b78c84d8ad2943baa347d460869fa58526d47deed643bca826994d529"
+    },
+    {
+      "path": "rizin/share/cons/dark",
+      "size": 1254,
+      "sha256": "fb22ab1927f1c2d6dc0a049a8c312dab9f3c1cd94baf5394812e52711415dfd2"
+    },
+    {
+      "path": "rizin/share/cons/darkda",
+      "size": 1354,
+      "sha256": "90a782773c5ed79fc41a2b6cff2125498d30ad81e2c6326690dad68fd6d2baa9"
+    },
+    {
+      "path": "rizin/share/cons/defragger",
+      "size": 1674,
+      "sha256": "4b08e9967d49131323eefc913c48ad575a84c8c542039f6f6771cbcec1dbf1a1"
+    },
+    {
+      "path": "rizin/share/cons/durian",
+      "size": 1414,
+      "sha256": "a614503918bdf9363766324f643c83ff738126801b0b3dbd624a8f862ef516c6"
+    },
+    {
+      "path": "rizin/share/cons/focus",
+      "size": 1281,
+      "sha256": "421ff4559caf05896562f7a6a14cda82b2821f0234a15c8d6906e11b623cead6"
+    },
+    {
+      "path": "rizin/share/cons/gb",
+      "size": 1626,
+      "sha256": "e03195383bc9eea5c8932dad08f1db92621dde34efa2b674d579710542ebab05"
+    },
+    {
+      "path": "rizin/share/cons/gentoo",
+      "size": 1498,
+      "sha256": "bfb00288c7a71f345760cfc79269a901c69c6601ca3013752a9bdb3d38d6ebbe"
+    },
+    {
+      "path": "rizin/share/cons/lima",
+      "size": 1302,
+      "sha256": "205fc25235351d2c202ce8c136471c14cc226c9108992e03c97e5d222637a96c"
+    },
+    {
+      "path": "rizin/share/cons/mars",
+      "size": 1367,
+      "sha256": "a6775059c7dc2817d6153d04be4254b52bdcf3374e9814118699cc8cc7ead856"
+    },
+    {
+      "path": "rizin/share/cons/matrix",
+      "size": 1233,
+      "sha256": "91948a77b2ecddf253aa784470aac3bbcd243c2bb74c5e7cfe7ab43e88969554"
+    },
+    {
+      "path": "rizin/share/cons/monokai",
+      "size": 1229,
+      "sha256": "fe849890475407cdf3f6280b2b455c4610b2576ca109bf7d7773c8e2e3308773"
+    },
+    {
+      "path": "rizin/share/cons/nord",
+      "size": 1367,
+      "sha256": "0e0755aa982c97e80d2ffb2d72da8ce5275cecb91ea2e971739f3396e77d285d"
+    },
+    {
+      "path": "rizin/share/cons/ogray",
+      "size": 1310,
+      "sha256": "23163341bcc9e8189a5fb52bc43df6adf98b163a411cf25a15c2b11d007ae4a3"
+    },
+    {
+      "path": "rizin/share/cons/onedark",
+      "size": 1594,
+      "sha256": "fce1742152bea6a796cd9c6df98204bed4f1089b24e695b7286cf780e1ce1cc4"
+    },
+    {
+      "path": "rizin/share/cons/pink",
+      "size": 1336,
+      "sha256": "2cda06b0e38f02573ad6c11daafc2ff90d644f4b6f6e820b02bebe2a63b561c2"
+    },
+    {
+      "path": "rizin/share/cons/rasta",
+      "size": 1162,
+      "sha256": "45ae79d9ccbdbeaa699810403980796a02d0150b5b7614dc6e329637e6786215"
+    },
+    {
+      "path": "rizin/share/cons/sepia",
+      "size": 1653,
+      "sha256": "d0c6f8369d49c7d524518cedc4fa8b554003749461c65eb7d0c36d535dd936c8"
+    },
+    {
+      "path": "rizin/share/cons/smyck",
+      "size": 1200,
+      "sha256": "b2a047fd7e0ec1e4495d9f6107b6d09640de67cd24b2f0fabd3c494a7221e540"
+    },
+    {
+      "path": "rizin/share/cons/solarized",
+      "size": 1360,
+      "sha256": "2687e0838b2c33193e803f9bfcf3c03518505c16182ff7a74e132e32bbac73e9"
+    },
+    {
+      "path": "rizin/share/cons/tango",
+      "size": 1692,
+      "sha256": "4f2a6a729d6a3b54ff5282298ad833ac8cf027b90bdb34aa8be6cb3498d5a592"
+    },
+    {
+      "path": "rizin/share/cons/twilight",
+      "size": 1401,
+      "sha256": "b084f7418881ff5eef6984893bd728933d333364e9922e6e09835686ab204049"
+    },
+    {
+      "path": "rizin/share/cons/underwater",
+      "size": 1451,
+      "sha256": "252686158383b34ea11a1cc605176797f05b10a6cb49fcfa66e0cc5cb2d24408"
+    },
+    {
+      "path": "rizin/share/cons/white",
+      "size": 1112,
+      "sha256": "88af4f2d234bf3c17a345ddf0352a28915ad91d201bdaf01fb373c8ea353d3ba"
+    },
+    {
+      "path": "rizin/share/cons/white2",
+      "size": 2667,
+      "sha256": "9ba0132941cda38645c3120ab414c0133f096ed8264beef33599d772c5dea286"
+    },
+    {
+      "path": "rizin/share/cons/xvilka",
+      "size": 1365,
+      "sha256": "f92827a7de396b365483dd8aa6ea1a57295c7e6c0b2191cedbc612b36329ab88"
+    },
+    {
+      "path": "rizin/share/cons/zenburn",
+      "size": 1406,
+      "sha256": "633cde4bc7e3503228672309075aa932fa32526991712868d266fa83fb1f99f4"
+    },
+    {
+      "path": "rizin/share/flag/tags.rz",
+      "size": 1117,
+      "sha256": "42d804900b201e047b117be3ed934feea7fe7031b8a62217b168db73c7229049"
+    },
+    {
+      "path": "rizin/share/format/dll/AVICAP.sdb",
+      "size": 1290,
+      "sha256": "8fbbabbdbaa10e214310fee822df7628def308c95d3831ca87c21ed1725ed505"
+    },
+    {
+      "path": "rizin/share/format/dll/AVIFILE.sdb",
+      "size": 3449,
+      "sha256": "94a007f29f5e96e392c2c0b75c3ed4265baadc8b0b1127343b9403481114677d"
+    },
+    {
+      "path": "rizin/share/format/dll/AWDEVL16.sdb",
+      "size": 1578,
+      "sha256": "8ffb2e5abb0534c56efb5b99ad0e54e4cae46b3bccd4eff465349d1a951b144a"
+    },
+    {
+      "path": "rizin/share/format/dll/CARDS.sdb",
+      "size": 1206,
+      "sha256": "9f3732d08b353a0aeffa74ab2777ae052922cfaf534712565af27a76de372493"
+    },
+    {
+      "path": "rizin/share/format/dll/CMC.sdb",
+      "size": 1434,
+      "sha256": "fe56acb1e4fd1420eeebceb43db8d3813ef48898d4b6f2d72747099463272d40"
+    },
+    {
+      "path": "rizin/share/format/dll/COMM.sdb",
+      "size": 1611,
+      "sha256": "4de0e67538202e489f94ef2b1b4379dceab88fb1cd8dce8838a49f533682c6fa"
+    },
+    {
+      "path": "rizin/share/format/dll/COMMCTRL.sdb",
+      "size": 2782,
+      "sha256": "352b98cb3be890a7b05003d584a0d57aaaa922d47fac92a7b0a778223a977ee3"
+    },
+    {
+      "path": "rizin/share/format/dll/COMMDLG.sdb",
+      "size": 1499,
+      "sha256": "ff75c14e78a9e0c8d1b2aee34147cf97c0edf8357a7f59caa2f6dc0ebd4c0f9c"
+    },
+    {
+      "path": "rizin/share/format/dll/COMPOBJ.sdb",
+      "size": 11284,
+      "sha256": "2639418f0089436eeab861119f392ed8301eed585dea1c9522bc9de5f4ca9f6b"
+    },
+    {
+      "path": "rizin/share/format/dll/CSPMAN.sdb",
+      "size": 2646,
+      "sha256": "51e7b9055740e7142fd35c555cb2c2d85d8c4b95a8bb7b6bfb4ef15280dc7b43"
+    },
+    {
+      "path": "rizin/share/format/dll/DCIMAN.sdb",
+      "size": 1975,
+      "sha256": "eea5e3b332d9c04f1aa1b37544e3f3e8dc9e0e2144efe60190f53c3a70d1b71d"
+    },
+    {
+      "path": "rizin/share/format/dll/DDEML.sdb",
+      "size": 2518,
+      "sha256": "5923a2d655f97fa869b15c0e02668497afdd12aa52fcca0aa67a0b1ef2bdf2fa"
+    },
+    {
+      "path": "rizin/share/format/dll/DESKCP16.sdb",
+      "size": 1795,
+      "sha256": "712739e57813726a2c834469541b71b1f0a0f09ba3113e40bdf18e464b1f54e6"
+    },
+    {
+      "path": "rizin/share/format/dll/DIBENG.sdb",
+      "size": 2830,
+      "sha256": "7434798e9e879752c431107a156677dd05d47c01879bb5a729cf654e9bda12ca"
+    },
+    {
+      "path": "rizin/share/format/dll/DISPDIB.sdb",
+      "size": 1118,
+      "sha256": "bb5153a541f4924b29db128b90980c05862b2c0a684daf359d159a319e9a91d0"
+    },
+    {
+      "path": "rizin/share/format/dll/DISPLAY.sdb",
+      "size": 2074,
+      "sha256": "9f391e0dfe609aa5b45729be00e59b075aee46188998351a7312f1a9fc86fff3"
+    },
+    {
+      "path": "rizin/share/format/dll/DSKMAINT.sdb",
+      "size": 1675,
+      "sha256": "997ad343b0ce496308da48166dcf37152cd8de0e02535a471ce81e8ec1690f1c"
+    },
+    {
+      "path": "rizin/share/format/dll/ENABLE3.sdb",
+      "size": 1321,
+      "sha256": "4a74abdd3dcb58ca25a743cafd8fda30164f66ff5bab479de41a5acbf5e824b3"
+    },
+    {
+      "path": "rizin/share/format/dll/FAXCODEC.sdb",
+      "size": 1270,
+      "sha256": "ee38a7e920d5479f054de5f489154eb3b36c856c488bd63fc819033d3d18d410"
+    },
+    {
+      "path": "rizin/share/format/dll/GDI.sdb",
+      "size": 15804,
+      "sha256": "a043728c3cc823fa745b0d2826a5c20c99efe633c6adaf546be899a0990043f0"
+    },
+    {
+      "path": "rizin/share/format/dll/INET16.sdb",
+      "size": 1127,
+      "sha256": "1b2ec36fee53257b657bf72d5b794c30b9c73c71d6095807f3b0397e62eddb2f"
+    },
+    {
+      "path": "rizin/share/format/dll/IOSCLASS.sdb",
+      "size": 1168,
+      "sha256": "d84adce992059148706f5878bdc8e43c9576e1cee91a4f1685817e0b54ccb3c3"
+    },
+    {
+      "path": "rizin/share/format/dll/KERNEL.sdb",
+      "size": 12037,
+      "sha256": "b5c49f965d8ed823442089cbb2932fb40dad3a45107c1fd27b2425be93d34148"
+    },
+    {
+      "path": "rizin/share/format/dll/KEYBOARD.sdb",
+      "size": 1966,
+      "sha256": "dacd937fd4aa808eb2f5ebacc7249859a6d176899637ff0f3084849128652f71"
+    },
+    {
+      "path": "rizin/share/format/dll/LZEXPAND.sdb",
+      "size": 1400,
+      "sha256": "7ef86827f5d09a0445a47db826714d8fe74ac09393a80489ca656a240ee36dfd"
+    },
+    {
+      "path": "rizin/share/format/dll/MAINCP16.sdb",
+      "size": 1149,
+      "sha256": "cb694a3f7e88cd3888fb91aba06862c4146e105e891f4b1fc58aff845e7051eb"
+    },
+    {
+      "path": "rizin/share/format/dll/MAPI.sdb",
+      "size": 9080,
+      "sha256": "9be5db1986a97bff47106351be5bdd3893dd03e16d55a832b80eb77078f35e7c"
+    },
+    {
+      "path": "rizin/share/format/dll/MAPIU.sdb",
+      "size": 2011,
+      "sha256": "c90915bf30cb49c414cb69000ca8ab090e3a41d35cbeed06d95710ae536f0716"
+    },
+    {
+      "path": "rizin/share/format/dll/MAPIX.sdb",
+      "size": 1524,
+      "sha256": "3b6afc5a9b11ee029b0856019661d2e2b9ffe4bf61463e92949f7596f06832eb"
+    },
+    {
+      "path": "rizin/share/format/dll/MCIAVI.sdb",
+      "size": 1083,
+      "sha256": "74d7eb867aa729b3d8d562e0ea28294602cd0432fa4ac75a3bd9115f8162a2e7"
+    },
+    {
+      "path": "rizin/share/format/dll/MCICDA.sdb",
+      "size": 1083,
+      "sha256": "74d7eb867aa729b3d8d562e0ea28294602cd0432fa4ac75a3bd9115f8162a2e7"
+    },
+    {
+      "path": "rizin/share/format/dll/MCIMIDI.sdb",
+      "size": 1057,
+      "sha256": "a59ed3b0664866ba165ee255a6059309a4967cf319cd2e26c73d136725a31ad6"
+    },
+    {
+      "path": "rizin/share/format/dll/MCIOLE.sdb",
+      "size": 1372,
+      "sha256": "1ebb8f0b2c03be959781d72f2b18b41f4c9178887ec287d0b3e9a271c0a8b08c"
+    },
+    {
+      "path": "rizin/share/format/dll/MCIWAVE.sdb",
+      "size": 1083,
+      "sha256": "74d7eb867aa729b3d8d562e0ea28294602cd0432fa4ac75a3bd9115f8162a2e7"
+    },
+    {
+      "path": "rizin/share/format/dll/MIDIMAP.sdb",
+      "size": 1125,
+      "sha256": "a5f157d8596e74f5040721abbb1a7f4020d6c03260cb8b3b963b2cdf8c5e6254"
+    },
+    {
+      "path": "rizin/share/format/dll/ML3XEC16.sdb",
+      "size": 1096,
+      "sha256": "98516c4f5d57d37374301a11c0387489df0462dd888e0e4a2f997d65fdcac333"
+    },
+    {
+      "path": "rizin/share/format/dll/MMCI.sdb",
+      "size": 1085,
+      "sha256": "932a0ac6ace1aebbc207749340be9282e13280637f1c9522a2b74b89e752b6fd"
+    },
+    {
+      "path": "rizin/share/format/dll/MMSYSTEM.sdb",
+      "size": 7699,
+      "sha256": "c93aff4894bac9e41005b544adbdeb8895a625bb383acd42f142a4b3a8a6087c"
+    },
+    {
+      "path": "rizin/share/format/dll/MODEM.sdb",
+      "size": 1163,
+      "sha256": "7da149abe08f109e896596377bdf4d948777445b18455415142698552532d3dd"
+    },
+    {
+      "path": "rizin/share/format/dll/MODEMUI.sdb",
+      "size": 1268,
+      "sha256": "6a38c8e6f4d83b9ba8c3c88028f1bd41281948bdd49cb5df6e3765994731456c"
+    },
+    {
+      "path": "rizin/share/format/dll/MOUSE.sdb",
+      "size": 1355,
+      "sha256": "cf670e6a8a63cdc268aac1b9117110052e3a47f4402525ed3e1bb1cde36a7453"
+    },
+    {
+      "path": "rizin/share/format/dll/MSACM.sdb",
+      "size": 2618,
+      "sha256": "37c5c12d3a35b29108856f831fee7ee2cef6b80169a8caf69b9f0dc4fe2f8b82"
+    },
+    {
+      "path": "rizin/share/format/dll/MSACMMAP.sdb",
+      "size": 1187,
+      "sha256": "14a075d2fb0aec5eac5caa6c33b6fcd26ed10aa924f60144e7fe0526ce413020"
+    },
+    {
+      "path": "rizin/share/format/dll/MSDOS.sdb",
+      "size": 1336,
+      "sha256": "9374941b6e2842b0141f0e28b403f45fe4882cbf084bb7c144901b5feb073b15"
+    },
+    {
+      "path": "rizin/share/format/dll/MSDOSD.sdb",
+      "size": 1116,
+      "sha256": "11b8e150d929132f0a56a747a211edb10deab7e344c95f6cb43b5405cacf8cfb"
+    },
+    {
+      "path": "rizin/share/format/dll/MSJSTICK.sdb",
+      "size": 1083,
+      "sha256": "dbc1c434bbb50d00c07df9a8354c9879a79d4f421af57e145019011117fd0f98"
+    },
+    {
+      "path": "rizin/share/format/dll/MSMIXMGR.sdb",
+      "size": 1441,
+      "sha256": "ffd4f88954775cf1f3a97e090b17e694f9fa7a1b879c48016e78f1bd99b724b4"
+    },
+    {
+      "path": "rizin/share/format/dll/MSPCIC.sdb",
+      "size": 1306,
+      "sha256": "f0037b57fb9e3f516b9757e5ac834edb850c0ca01134124bf2cf45fd57d54490"
+    },
+    {
+      "path": "rizin/share/format/dll/MSPRINT.sdb",
+      "size": 1249,
+      "sha256": "7aa4d23b73682e352df292f2a40a63d429d045195b29f91ca0adc3650bfe2b14"
+    },
+    {
+      "path": "rizin/share/format/dll/MSTCP.sdb",
+      "size": 1122,
+      "sha256": "c8278db212cbd1359e74cb4273ad1498874a7f9229a11c6b106e673fd6b73a07"
+    },
+    {
+      "path": "rizin/share/format/dll/MSVIDEO.sdb",
+      "size": 3783,
+      "sha256": "6ee3b21cdadb7bfcbe9735b1e61f1e80b5f7d8f3c425275daaae73302bbdc1fa"
+    },
+    {
+      "path": "rizin/share/format/dll/NETAPI.sdb",
+      "size": 9237,
+      "sha256": "824b9ce5d9dbaf1521d95b5a7e31d7bf88a96d8874d87b608a611003ebbf0dc5"
+    },
+    {
+      "path": "rizin/share/format/dll/NETCPL.sdb",
+      "size": 1120,
+      "sha256": "ccdef4aa550985e44858f7e2e566564015003279e2482700af1ea0ae34dbcadd"
+    },
+    {
+      "path": "rizin/share/format/dll/NETDI.sdb",
+      "size": 3245,
+      "sha256": "cd42367e2db457349a1b657c074e00f9f41427b494b75cf2054e653c4aba0e1a"
+    },
+    {
+      "path": "rizin/share/format/dll/NETOS.sdb",
+      "size": 2206,
+      "sha256": "9824e4e579add9f97debbe96a8ed33354d162aad9c298a3b9f9d5cced08f8f04"
+    },
+    {
+      "path": "rizin/share/format/dll/NETWARE.sdb",
+      "size": 1300,
+      "sha256": "944f8ef18f7ab9f3268de4e23cc7021fd2ab134785bc613a7410163476a86f03"
+    },
+    {
+      "path": "rizin/share/format/dll/NW16.sdb",
+      "size": 1185,
+      "sha256": "4f33dc56cc44e2ee7d0b185c4a4ec00eaeb02d9930b25b08731a3c4fe69b1646"
+    },
+    {
+      "path": "rizin/share/format/dll/OLE2.sdb",
+      "size": 11174,
+      "sha256": "6a7a5c28c0809efa75fe55625619480eebff3d341d233956679fd21bea321455"
+    },
+    {
+      "path": "rizin/share/format/dll/OLE2CONV.sdb",
+      "size": 1327,
+      "sha256": "8c46b99b00d23668cd17ecc7e00bb8b8124530c71a451fb5444514f88b345f67"
+    },
+    {
+      "path": "rizin/share/format/dll/OLE2DISP.sdb",
+      "size": 6195,
+      "sha256": "f370c775df8f8b59d3246dcbfe0d0b9b71b30382287ad145cb0649b2eeb72710"
+    },
+    {
+      "path": "rizin/share/format/dll/OLE2NLS.sdb",
+      "size": 1485,
+      "sha256": "388deff3cbfbf2d7d40706d473fa1d613dcb12f97bc1a2f945017428f990e872"
+    },
+    {
+      "path": "rizin/share/format/dll/OLECLI.sdb",
+      "size": 7716,
+      "sha256": "ad6c1d9b55efa922439edaf29c88af1f934f94f0178175e0cbba48ce3e0cd4c5"
+    },
+    {
+      "path": "rizin/share/format/dll/OLESVR.sdb",
+      "size": 1905,
+      "sha256": "d984bbbf45781bafbfa83ee88431aee54968fce667221a4edd9c8db08d3e625e"
+    },
+    {
+      "path": "rizin/share/format/dll/PIFMGR.sdb",
+      "size": 1939,
+      "sha256": "f6b0e988688b93ceaf8fbc5ecff8cb5b47416711dd096949c472ba9d32cc7de0"
+    },
+    {
+      "path": "rizin/share/format/dll/PKPD.sdb",
+      "size": 2928,
+      "sha256": "af02a044a100f1e724ff4d09609831924d4235b07b0aa75cf182785557479e09"
+    },
+    {
+      "path": "rizin/share/format/dll/PMSPL.sdb",
+      "size": 1892,
+      "sha256": "3fc087f4ea6216186babaf7aa160790abe1f4f1038eada50ac4ef2382c23624d"
+    },
+    {
+      "path": "rizin/share/format/dll/POWER.sdb",
+      "size": 1135,
+      "sha256": "218de14a7f0630a0e913ea5db78c67d9c0d64264904e614e0524ba8e81fc73ca"
+    },
+    {
+      "path": "rizin/share/format/dll/RASAPI16.sdb",
+      "size": 1350,
+      "sha256": "b1df7b589ec77644a2d7b03dbcb830d97c8afde471d37cfb63c8e5090ab3e35b"
+    },
+    {
+      "path": "rizin/share/format/dll/RNASETUP.sdb",
+      "size": 1129,
+      "sha256": "32eb3f7de3bea5cebb6d0d0d15c14e5c68a689afd21b98750766133f7c61d5c4"
+    },
+    {
+      "path": "rizin/share/format/dll/RSRC16.sdb",
+      "size": 1173,
+      "sha256": "7317d8206c3a307074ea996b90d4ecfe4d10c23eebb70c5c38359cc4e15d3431"
+    },
+    {
+      "path": "rizin/share/format/dll/SB16SND.sdb",
+      "size": 1318,
+      "sha256": "7030ee465462ca63f63768ff7f0c5c53793c99b02de1a174cc305e9cf8d0b3ae"
+    },
+    {
+      "path": "rizin/share/format/dll/SBFM.sdb",
+      "size": 1116,
+      "sha256": "4b538b8af81d1d82ccff8a4b231ca8e7e75a500a542a39382d4cdefd15a1e800"
+    },
+    {
+      "path": "rizin/share/format/dll/SETUP4.sdb",
+      "size": 1191,
+      "sha256": "4f0ac55735248d6aef0f3e4bb317a021ca0ee288073aa51fb6e3a8384ec8d294"
+    },
+    {
+      "path": "rizin/share/format/dll/SETUPX.sdb",
+      "size": 9605,
+      "sha256": "80e59bc016307ded0faae9f42153a8434ecff9bed8d12e4a2fa09693356dc2ed"
+    },
+    {
+      "path": "rizin/share/format/dll/SHELL.sdb",
+      "size": 2304,
+      "sha256": "bee2a537967b0e2f0c353bc5918cb56357279a78077e1d017fe1dadebf57f734"
+    },
+    {
+      "path": "rizin/share/format/dll/SOUND.sdb",
+      "size": 1673,
+      "sha256": "ca63e38f62da49dd2f999f6d99a0ec213796a2b6f37c2924f9f4b1a693ec8d8c"
+    },
+    {
+      "path": "rizin/share/format/dll/SPOOLER.sdb",
+      "size": 1089,
+      "sha256": "9d22d9f86e692b186308dfa478cf173414cc92cbe2df5b626cf878755910819f"
+    },
+    {
+      "path": "rizin/share/format/dll/STORAGE.sdb",
+      "size": 1424,
+      "sha256": "35c83bc5069fc99e3be0ef984ceb03199c213b895d9d62ee04ea1e4d22d6c158"
+    },
+    {
+      "path": "rizin/share/format/dll/SYSCLASS.sdb",
+      "size": 1280,
+      "sha256": "b9af38993f22ebf46d32f4eac97149e5f449fd6bab0a2222283136b8c97f1123"
+    },
+    {
+      "path": "rizin/share/format/dll/SYSDETMG.sdb",
+      "size": 3643,
+      "sha256": "af307f09aca45954b4717efbe18e612eb78b7a77f69f965be3fc84cc5eded592"
+    },
+    {
+      "path": "rizin/share/format/dll/SYSDM.sdb",
+      "size": 1869,
+      "sha256": "c954e5addfe8acbcb6dfa00c57c897d4601c6b67253282cb6ca0b664e10a11d0"
+    },
+    {
+      "path": "rizin/share/format/dll/SYSEDIT.sdb",
+      "size": 1276,
+      "sha256": "f9fcbb89b1c5e08aaf2375c1c6fd91518276d68eae36a1f2b3d9e91128f61cc4"
+    },
+    {
+      "path": "rizin/share/format/dll/SYSTEM.sdb",
+      "size": 1545,
+      "sha256": "2061ac4bc4fb88bae008182b941705586aaea714914b4ed8b5a5afeb2860ae0e"
+    },
+    {
+      "path": "rizin/share/format/dll/SYSTHUNK.sdb",
+      "size": 1190,
+      "sha256": "6ca5e007a5a926159a83cb775b7bb08f5030dbdd948521d8543497ee7ceebf0d"
+    },
+    {
+      "path": "rizin/share/format/dll/TAPI.sdb",
+      "size": 6842,
+      "sha256": "40918ad85d8bbed41492acbcad5b765d512158b8524b6f28420160296221c547"
+    },
+    {
+      "path": "rizin/share/format/dll/TAPIADDR.sdb",
+      "size": 1445,
+      "sha256": "0da7349b81240b3a1be063dd9c67c88ebe7e45f985fa984d543cf6a3753a9a39"
+    },
+    {
+      "path": "rizin/share/format/dll/TOOLHELP.sdb",
+      "size": 2459,
+      "sha256": "4efa5eb358621b3bfe5fe549e86ba499475ebfbdb7b3a4e5c327cf5030e94c38"
+    },
+    {
+      "path": "rizin/share/format/dll/TYPELIB.sdb",
+      "size": 1554,
+      "sha256": "f7044aec4ccf073310ff5d124943080433d0bab0393b9b6c2b8c639e698f82d3"
+    },
+    {
+      "path": "rizin/share/format/dll/UMDM16.sdb",
+      "size": 1444,
+      "sha256": "ca7c3e8c93dcaa2bdf6bc5f5f962682c3857e0a3ada6cacde3744f9a479617b7"
+    },
+    {
+      "path": "rizin/share/format/dll/USER.sdb",
+      "size": 21132,
+      "sha256": "71475208d1a99641639cd39b2960bcacc573b80043ac734f6cf7dbbb2e388ed6"
+    },
+    {
+      "path": "rizin/share/format/dll/VER.sdb",
+      "size": 1505,
+      "sha256": "5cb2d8e2fce0a7aac03c1abbfd3614ba471fe86122a02ce7fac1735849e510ca"
+    },
+    {
+      "path": "rizin/share/format/dll/WHLP16T.sdb",
+      "size": 1391,
+      "sha256": "9dd8745f42b0c819977444a213a6fdf4ae339ed104acf52198a65d3901b1376e"
+    },
+    {
+      "path": "rizin/share/format/dll/WIN32S16.sdb",
+      "size": 1146,
+      "sha256": "4e362e3dc40b323079e238b29550d2052983a16bb91b7f8349b488d7cdda6420"
+    },
+    {
+      "path": "rizin/share/format/dll/WIN87EM.sdb",
+      "size": 1192,
+      "sha256": "e12385235f38aff8eba247f6956ede5d37971794186cf0054d887c1250a5cbb2"
+    },
+    {
+      "path": "rizin/share/format/dll/WINASPI.sdb",
+      "size": 1221,
+      "sha256": "d3f1217763245dd62c2d14b232559d21ea9fc7c6bdce0cf8c260a582ada5ec08"
+    },
+    {
+      "path": "rizin/share/format/dll/WINNET16.sdb",
+      "size": 1103,
+      "sha256": "22b4d08e620697ef3d3ed099c04bcff846e132a19c5c460ef935d3e73ef7f2f3"
+    },
+    {
+      "path": "rizin/share/format/dll/WINOLDAP.sdb",
+      "size": 1090,
+      "sha256": "bd211ae0e04d3e9651cc9ba3937246dde3385f200b6734b07e176feab555e4ed"
+    },
+    {
+      "path": "rizin/share/format/dll/WINSOCK.sdb",
+      "size": 2972,
+      "sha256": "b57c06de5529642571c27f7fb7081c759c93fbfd442929870b1b764e4420f01a"
+    },
+    {
+      "path": "rizin/share/format/dll/WINSPL16.sdb",
+      "size": 1206,
+      "sha256": "2e426947d69a50ccd4b585986d8a888b6b051f252026ff7e7c085d35ad88d56f"
+    },
+    {
+      "path": "rizin/share/format/dll/WPSAPD.sdb",
+      "size": 1437,
+      "sha256": "46a7c7b173bb9bdd6c2ec14974f0bc8a1626e7396b893c6ed838473d1f7e7463"
+    },
+    {
+      "path": "rizin/share/format/dll/WPSUNI.sdb",
+      "size": 2572,
+      "sha256": "68e98266687975efb8317d915f2cb63fc1dc862fd239db02afab1fde9292fe44"
+    },
+    {
+      "path": "rizin/share/format/dll/WPSUNIRE.sdb",
+      "size": 1182,
+      "sha256": "8491c387752d15f9f40514296917d7c71774232ce3e5bb1a9485a0798325db49"
+    },
+    {
+      "path": "rizin/share/format/dll/WSASRV.sdb",
+      "size": 1070,
+      "sha256": "b66940df9bd59b05bf12dd07c98efcdd2cdb10bceca5f735ac1b7fff686bf000"
+    },
+    {
+      "path": "rizin/share/format/dll/aclui.sdb",
+      "size": 1387,
+      "sha256": "984484ed06a5bf44d4238e3d06016768666928ca6e97f3b92191ccebbff832c2"
+    },
+    {
+      "path": "rizin/share/format/dll/activeds.sdb",
+      "size": 2230,
+      "sha256": "7b8207b58c70e4bb1cc895f003f793c9fc4fcdf8adb6c57e90dc570c524ee37e"
+    },
+    {
+      "path": "rizin/share/format/dll/atl.sdb",
+      "size": 3429,
+      "sha256": "e0430eeae007c569e798be832b4ea65bb02b75c4bbe994cbc910623f03d8980f"
+    },
+    {
+      "path": "rizin/share/format/dll/borlndmm.sdb",
+      "size": 1710,
+      "sha256": "2add5bea3f2598860e61edbebdb629b2cad63f11a8a8069a93491eba134138c2"
+    },
+    {
+      "path": "rizin/share/format/dll/browseui.sdb",
+      "size": 1144,
+      "sha256": "2bb4af9bfa098cbd7e2093141812fde72d275998ede5a42d9ca113160a256400"
+    },
+    {
+      "path": "rizin/share/format/dll/cabinet.sdb",
+      "size": 2031,
+      "sha256": "5fcf638ec7d7b76b560b7ef9ba64fe2edd71415a8b9b34684195c4adf5659a2c"
+    },
+    {
+      "path": "rizin/share/format/dll/comctl32.sdb",
+      "size": 5839,
+      "sha256": "6b20d3b803d02eb611b33a956f9b944a740034980ea14ced4ab6f3465a701739"
+    },
+    {
+      "path": "rizin/share/format/dll/csmfpapi.sdb",
+      "size": 6849,
+      "sha256": "26bf3b11a969fdda975327023bba6641bec0396147793a833c6ea6f6643add67"
+    },
+    {
+      "path": "rizin/share/format/dll/csmtpapi.sdb",
+      "size": 3818,
+      "sha256": "19856167cbdad3aeedfff5867edcbf24c12df75faeb2e971d65db6eaf4b17430"
+    },
+    {
+      "path": "rizin/share/format/dll/csncdapi.sdb",
+      "size": 1736,
+      "sha256": "b76ad4b18cea15a1e59ac538a5c98301136b709400b0dced59a966b80e175b37"
+    },
+    {
+      "path": "rizin/share/format/dll/dsound.sdb",
+      "size": 1555,
+      "sha256": "93df75f1366df4f992601f5852e75a32b91b82333582c1349e06e67d02d2a508"
+    },
+    {
+      "path": "rizin/share/format/dll/gsprop32.sdb",
+      "size": 16356,
+      "sha256": "311fc3a718f2c177298833fda42eb4113705482269e3fb6c57661f74e00cd439"
+    },
+    {
+      "path": "rizin/share/format/dll/iertutil.sdb",
+      "size": 2868,
+      "sha256": "351fe519621005fc8c5fee98004585b40dea291d0d291f9f8a6160d6785dab5f"
+    },
+    {
+      "path": "rizin/share/format/dll/kernel32.sdb",
+      "size": 54073,
+      "sha256": "ab95322feeb0d571446b460cdfe8cb83e1db1bda24cdc68fac8698fb5062d425"
+    },
+    {
+      "path": "rizin/share/format/dll/mfc100u.sdb",
+      "size": 799528,
+      "sha256": "60f7b33b9c9894e532f5e28e7b36b925fb8d8c14b18176126d6c546fb9838843"
+    },
+    {
+      "path": "rizin/share/format/dll/mfc120.sdb",
+      "size": 1024,
+      "sha256": "4808d26550831f86a6f12facb4864e390b91c97effbce2a195659aa35faf0105"
+    },
+    {
+      "path": "rizin/share/format/dll/mfc140u.sdb",
+      "size": 743758,
+      "sha256": "5a79f8c4b58e86377b7da838566c5b0093a52f455167d991debd6d7e6095582e"
+    },
+    {
+      "path": "rizin/share/format/dll/mfc30.sdb",
+      "size": 91521,
+      "sha256": "68f5676ae7c370ec8a9d9f956eb58ca799440738e2f4bbd7d2e290c17ba6d36d"
+    },
+    {
+      "path": "rizin/share/format/dll/mfc40.sdb",
+      "size": 292349,
+      "sha256": "0e5a6755e6a2c29e4a06480f22ddddb06037bb6d3a4bcc938aa2b28c000f0c52"
+    },
+    {
+      "path": "rizin/share/format/dll/mfc42.sdb",
+      "size": 342853,
+      "sha256": "68ea9921d6d6d138ab0c5a336befaf7a951ee7e3da8821d6478802a1005e16c6"
+    },
+    {
+      "path": "rizin/share/format/dll/mfc42u.sdb",
+      "size": 341555,
+      "sha256": "5081cf4567567c237b1f4cb0b6835cb080605ad43217281c0d3c7142acbd9546"
+    },
+    {
+      "path": "rizin/share/format/dll/mfc71.sdb",
+      "size": 338562,
+      "sha256": "138a9be86214635ed1f91c4a80431849afcb3575c230fe0c1020386e6cffaa7d"
+    },
+    {
+      "path": "rizin/share/format/dll/mfc71u.sdb",
+      "size": 338593,
+      "sha256": "9b715c9169f76a151c6c2e5108f373041b53f185a7a14cd95d4f3546ae6d11c2"
+    },
+    {
+      "path": "rizin/share/format/dll/mfc90u.sdb",
+      "size": 363392,
+      "sha256": "24043ebad90372741df96522242200fd07dc688061f43de66e3299662bd15cde"
+    },
+    {
+      "path": "rizin/share/format/dll/msi.sdb",
+      "size": 14373,
+      "sha256": "165a2279a9347be4b6587fbcd7b724486daceaa68a3e82adb575b51f6ff35016"
+    },
+    {
+      "path": "rizin/share/format/dll/mstlsapi.sdb",
+      "size": 5655,
+      "sha256": "eccb0d3f06157cc03b1f6360b3505b8f3f6d9172555366e65a60aa4fc62548fa"
+    },
+    {
+      "path": "rizin/share/format/dll/msvbvm50.sdb",
+      "size": 24140,
+      "sha256": "8cde237f3e5b29e06bcd9878ce8bf59762d4ef439acb8f6c2580edf5ae252338"
+    },
+    {
+      "path": "rizin/share/format/dll/msvbvm60.sdb",
+      "size": 25317,
+      "sha256": "d840e808cd25e8ef64e6216a541390124d83813c309ac9673954c0a1e2e914fe"
+    },
+    {
+      "path": "rizin/share/format/dll/odbc32.sdb",
+      "size": 7908,
+      "sha256": "7bcae04bff598f92f70efce03f5a95404567fd87bcd856e0f58ddcce8b52470d"
+    },
+    {
+      "path": "rizin/share/format/dll/oleaut32.sdb",
+      "size": 16351,
+      "sha256": "ef3445294b6a191d63eaa7283517cb3f70fd300101bd3e8a678093ac45620503"
+    },
+    {
+      "path": "rizin/share/format/dll/olecli32.sdb",
+      "size": 7716,
+      "sha256": "2e536c07a70af603edcf968ef6fad1bc501d7ca61479f4162aaa919949b029fc"
+    },
+    {
+      "path": "rizin/share/format/dll/oledlg.sdb",
+      "size": 1954,
+      "sha256": "3150e08df21e3aed212d0aae98fbaa7a9b64fe46fb0ef858c76b57cb1761f66c"
+    },
+    {
+      "path": "rizin/share/format/dll/olepro32.sdb",
+      "size": 1510,
+      "sha256": "44430b733a6ff8ab551a522e0b9b3926aa96dcd894e0e68c685219c950962824"
+    },
+    {
+      "path": "rizin/share/format/dll/olesvr32.sdb",
+      "size": 1905,
+      "sha256": "731acd1dd9511d106f4dadd577e5dcb17e4956cb964df0063f1bed829543c1fe"
+    },
+    {
+      "path": "rizin/share/format/dll/shdocvw.sdb",
+      "size": 2027,
+      "sha256": "fbb99157e8c4912f49c7bbad8dde9cb8cffc1504064ed87f4a442a7ae724e0fb"
+    },
+    {
+      "path": "rizin/share/format/dll/shell32.sdb",
+      "size": 23851,
+      "sha256": "68f2267eb80b219ace216502f741930b01e47ea8f114868e2b395d31f4cea434"
+    },
+    {
+      "path": "rizin/share/format/dll/shlwapi.sdb",
+      "size": 16110,
+      "sha256": "6cb3288365262534201fa4c06f61fa6a2a0705f65084134921deaf391fac1ec0"
+    },
+    {
+      "path": "rizin/share/format/dll/spr32d70.sdb",
+      "size": 26779,
+      "sha256": "c9ca4c6cbf158a2ffde7cf6c2ca84875bcccb41f472a827d16325c4b48a3f40b"
+    },
+    {
+      "path": "rizin/share/format/dll/urlmon.sdb",
+      "size": 7109,
+      "sha256": "4cff2339523132db0553282149f71b9e5049883ab2425a196ad84c5e91bd79c7"
+    },
+    {
+      "path": "rizin/share/format/dll/uxtheme.sdb",
+      "size": 4705,
+      "sha256": "971eb582aaed853b14ad2303f4bf5f12499e401bee4a7eee33f1c6e614baf2e3"
+    },
+    {
+      "path": "rizin/share/format/dll/vb40032.sdb",
+      "size": 9399,
+      "sha256": "d3e53e0a88662a9c291d84ec3ae5a68e95fe52d53383d1d7db8e9c14f73b2553"
+    },
+    {
+      "path": "rizin/share/format/dll/vssapi.sdb",
+      "size": 6925,
+      "sha256": "32a5d7a28929e68ea000a59e18c72db83a5c31bc137eed6462acd8f1160f80c7"
+    },
+    {
+      "path": "rizin/share/format/dll/winmm.sdb",
+      "size": 8571,
+      "sha256": "503e28425aca1635eb494090b2e7d7b6a3e7d882943325a7734cb573b3344ee9"
+    },
+    {
+      "path": "rizin/share/format/dll/wldap32.sdb",
+      "size": 11005,
+      "sha256": "93eee4bf3161c5a44671ed5bf6aeae2681932adbb96746be805fb844b6f2037e"
+    },
+    {
+      "path": "rizin/share/format/dll/ws2_32.sdb",
+      "size": 7796,
+      "sha256": "3e1ca24e7fb2d695bdb59b17251e1712f125290258cefcd65d3852a313b97dd7"
+    },
+    {
+      "path": "rizin/share/format/dll/wsnmp32.sdb",
+      "size": 2988,
+      "sha256": "6098675fe19d416bdc1917e31e7c50ae77b2c002c5838db540f621ff85e33404"
+    },
+    {
+      "path": "rizin/share/format/dll/wsock32.sdb",
+      "size": 3790,
+      "sha256": "c67c069111cad5687c405fcc573ac18e67b0cb8d5782f1dee14f6275a35334bb"
+    },
+    {
+      "path": "rizin/share/format/elf32",
+      "size": 564,
+      "sha256": "267b445ef90d03e654ae180b0f042807a2f0f15e76fbb7519cb29895579dfe4a"
+    },
+    {
+      "path": "rizin/share/format/elf64",
+      "size": 564,
+      "sha256": "4a48b05fb859c6c2bb63a72a352c4bab72109fabc24a1f32098c16b10ff68287"
+    },
+    {
+      "path": "rizin/share/format/elf_enums",
+      "size": 4610,
+      "sha256": "b262c142b56d394bac45e206e4c6e19bfc8fb354ded9e44a44f83973aa13a9b7"
+    },
+    {
+      "path": "rizin/share/format/mz",
+      "size": 208,
+      "sha256": "a87c8f89f99f99d4db598619143d9bdb41dbe2edec04ccf4001fc2adbb357cfe"
+    },
+    {
+      "path": "rizin/share/format/pe32",
+      "size": 1075,
+      "sha256": "e85aaaa1d77915a926a4e3ebba3d95e0c59239e0bd9382f4ca94f28917967cf5"
+    },
+    {
+      "path": "rizin/share/format/zip",
+      "size": 775,
+      "sha256": "382d430e3b49df3b7f65b0920495d17e21e905349c23c83ffac3f3cf6c762c00"
+    },
+    {
+      "path": "rizin/share/fortunes/fortunes.fun",
+      "size": 9698,
+      "sha256": "f1d5f87fb7337a6e9dbd0f5287af5c8e3583cccf63ebb40cb64d7426fbb8e32a"
+    },
+    {
+      "path": "rizin/share/fortunes/fortunes.tips",
+      "size": 6185,
+      "sha256": "93a3b899f8cb468ad7ddc61a0b7344ad4fa472f4d194bfd82e5921ae83be2a0c"
+    },
+    {
+      "path": "rizin/share/gittip",
+      "size": 40,
+      "sha256": "a86596c25e91579d082230d73aadf2b31728b6d473b0c7de631d2d5f6ca663c8"
+    },
+    {
+      "path": "rizin/share/hud/main",
+      "size": 1331,
+      "sha256": "7be45c6aae84df26fc5cde8238a9ef9f7522828d5295981e5b56795c715575d6"
+    },
+    {
+      "path": "rizin/share/magic/apple",
+      "size": 13799,
+      "sha256": "d646397ebbcb0103984845ca42c9bdeadd244124bcb8db4c78c3ba4f75cdcf12"
+    },
+    {
+      "path": "rizin/share/magic/archive",
+      "size": 8796,
+      "sha256": "4b24c544098741fb24cbdf2145b5515a020c30d60303239d244936df7904b821"
+    },
+    {
+      "path": "rizin/share/magic/cafebabe",
+      "size": 1321,
+      "sha256": "3c3dd8c28b313990864efce6364ed986dfcce8d3ae57238768591e3d6f748227"
+    },
+    {
+      "path": "rizin/share/magic/code",
+      "size": 199,
+      "sha256": "47024f39aba95a2c4623699675ef2b3cb170f25af7f0d10a881538f3e1c0297c"
+    },
+    {
+      "path": "rizin/share/magic/compressed",
+      "size": 5223,
+      "sha256": "56e40affe61408b48a7d64fd4f6ec7cf48a1d59ffb6eda9a179573611f1368d6"
+    },
+    {
+      "path": "rizin/share/magic/database",
+      "size": 7641,
+      "sha256": "7e24b242561fc1298c9cc4e0b4369e9dc467b5c025d1b76cf95c0c1587060060"
+    },
+    {
+      "path": "rizin/share/magic/elf",
+      "size": 9367,
+      "sha256": "80f15854ccdd250804a87cf08a32e11ddf0feff6903c93c4a6be965ad4c8e245"
+    },
+    {
+      "path": "rizin/share/magic/filesystems",
+      "size": 61487,
+      "sha256": "1525a23134f70e005db3d600f88a8b5469cb07da5d998678dd2ce42618bfe269"
+    },
+    {
+      "path": "rizin/share/magic/firmware",
+      "size": 35,
+      "sha256": "6b72ea86a6c692da6fb233e7e995a0f19f0a53fa836a0984f1eefd49b1dba9e4"
+    },
+    {
+      "path": "rizin/share/magic/flash",
+      "size": 670,
+      "sha256": "8bafa8a12e1e81d4b056179a248dcff769ad0d602cbc082244133d1aaf1ee135"
+    },
+    {
+      "path": "rizin/share/magic/freebsd",
+      "size": 5049,
+      "sha256": "a35dc7267aa4d7c0467fb2cad506e78cf8a7c0317d048260944b8c23aa9422cc"
+    },
+    {
+      "path": "rizin/share/magic/gimp",
+      "size": 1544,
+      "sha256": "ff187e79b2627e583574147d9f241b0d321bfed9e6bff0584a249c72091a535a"
+    },
+    {
+      "path": "rizin/share/magic/gpg",
+      "size": 730,
+      "sha256": "e25de192c08a51e945b833319853b58c643e389a3a0ca8e9b21f456c98f7d057"
+    },
+    {
+      "path": "rizin/share/magic/html",
+      "size": 70,
+      "sha256": "891f5b143705d9c1d2bd3067bdeb6b49ca2e4f75aaa611d512f6c9524352706a"
+    },
+    {
+      "path": "rizin/share/magic/images",
+      "size": 6567,
+      "sha256": "0beb4b065322eee9bae149e899f3c2c56636864b82e9ca90a1a111a3535c1650"
+    },
+    {
+      "path": "rizin/share/magic/java",
+      "size": 1853,
+      "sha256": "8c64836dd3fe9e4876127cff23fe5a8cc044fe5b9be96e89f7ed509511cbd860"
+    },
+    {
+      "path": "rizin/share/magic/jpeg",
+      "size": 6219,
+      "sha256": "0c30cc82f805737e1080b8728c50196e813b828f4e9fe73ce8890a17c5032f58"
+    },
+    {
+      "path": "rizin/share/magic/linux",
+      "size": 8151,
+      "sha256": "e0b122d911e95fdac4805ac97870eb9ef4fc17d5fc849cd72a268f36196c86c8"
+    },
+    {
+      "path": "rizin/share/magic/mach",
+      "size": 860,
+      "sha256": "0b651aadbc6e79bc7bbf7475d3e92b10056b21a7fbf192b8fe2672494da1e546"
+    },
+    {
+      "path": "rizin/share/magic/mail.news",
+      "size": 1813,
+      "sha256": "ecd43d3292cba60cd9e81e5a550a8fcec90b54392fe36fe02d5a7f7727d447ec"
+    },
+    {
+      "path": "rizin/share/magic/microsoft",
+      "size": 25019,
+      "sha256": "8df10358eb4d95c360fbe4acaa29bcfc076eca9a32dd483d33c4f46e2bd712b4"
+    },
+    {
+      "path": "rizin/share/magic/mime",
+      "size": 281,
+      "sha256": "a4801456fb551ce34fc331040afb766614618b0442a080e0eec9143b1e8449bc"
+    },
+    {
+      "path": "rizin/share/magic/netbsd",
+      "size": 9167,
+      "sha256": "534751936a132d9820164556975a2e64d86341d59c253934b044c490330ada14"
+    },
+    {
+      "path": "rizin/share/magic/network",
+      "size": 110,
+      "sha256": "e2669f26a3ad962a942836a466a4494a4836a0d8d8b4aaee16cbb0df41c8ac54"
+    },
+    {
+      "path": "rizin/share/magic/openbsd",
+      "size": 8970,
+      "sha256": "1c093f305c5e64658f57749e6b4df8ac33792b91e58dedc609e7d85bc4ef0089"
+    },
+    {
+      "path": "rizin/share/magic/pdf",
+      "size": 529,
+      "sha256": "d536cd288aa15eba79c8b6b75bc25aeded99a2a71ad2d3609c6418c5a4316aee"
+    },
+    {
+      "path": "rizin/share/magic/perl",
+      "size": 2009,
+      "sha256": "68c73a04618fc371775cc7682dcf4170cd90ee45fb5bb12a9976080ccb460ed7"
+    },
+    {
+      "path": "rizin/share/magic/python",
+      "size": 855,
+      "sha256": "81343728846dce79cb89672069c787b1adae69c0f63ef450489ff049880c4d87"
+    },
+    {
+      "path": "rizin/share/magic/riff",
+      "size": 8834,
+      "sha256": "f665824623b2d2f92cce9e5baf03348518f6fe7abf53b49a4351c11c6534a39e"
+    },
+    {
+      "path": "rizin/share/magic/sniffer",
+      "size": 7860,
+      "sha256": "4a049c669590609f9060664615c5869d110d3318db3fc9f7c9eee7d8e0f93c34"
+    },
+    {
+      "path": "rizin/share/magic/sql",
+      "size": 1460,
+      "sha256": "9fa957dfa9e09d5c9c29fad2c3d8c926b5d36248e4c1b30b85e07bbbd6bb25d4"
+    },
+    {
+      "path": "rizin/share/magic/ssh",
+      "size": 412,
+      "sha256": "b86f83b9e82136becee258fd70911fa9f7c33f088b9bbe7817e6d1a1b89253f7"
+    },
+    {
+      "path": "rizin/share/magic/uuencode",
+      "size": 1362,
+      "sha256": "47180df43289680372fc46b7dac95cddb395ef0e0750386a9c7d9a5171ea6ac2"
+    },
+    {
+      "path": "rizin/share/magic/video",
+      "size": 359,
+      "sha256": "2d437f4c12be4f833ee681d8186530ce8eee3b7835c8e4d0890dd56c594b48c9"
+    },
+    {
+      "path": "rizin/share/magic/vim",
+      "size": 308,
+      "sha256": "af7f6159493052790be27dd1e48cbc622152dc83e7d0d38d5d84836042ce14da"
+    },
+    {
+      "path": "rizin/share/magic/vorbis",
+      "size": 5031,
+      "sha256": "e6e4ed753a51bda99fa5b225f871536430bf310921a3ac127a1d4af85efb2f83"
+    },
+    {
+      "path": "rizin/share/magic/zfs",
+      "size": 2519,
+      "sha256": "dd89ccdf471edd553c0bde075be84ab6195efad18f9e7381b4c93bab360fa34c"
+    },
+    {
+      "path": "rizin/share/man/man1/rizin.1",
+      "size": 5563,
+      "sha256": "ca415fa4255c7b27ad13055a660bd11c98510d41f69e9f7c1bad4d20ad773ace"
+    },
+    {
+      "path": "rizin/share/man/man1/rz-ar.1",
+      "size": 1377,
+      "sha256": "966e187646213a8ff7d56f1d8dbe3f88621f8fbba979b6161911cb7b012ee06c"
+    },
+    {
+      "path": "rizin/share/man/man1/rz-asm.1",
+      "size": 4559,
+      "sha256": "0df4d536e8a012f87732ad80050804611a3d9c1bc6b2afc174113a08df4bcfc1"
+    },
+    {
+      "path": "rizin/share/man/man1/rz-ax.1",
+      "size": 3798,
+      "sha256": "c143dc59b60f23b877f32e8b1289a25e23fdbc0c0ae76d3ab5b61e6b667a5cb1"
+    },
+    {
+      "path": "rizin/share/man/man1/rz-bin.1",
+      "size": 4743,
+      "sha256": "f22ebe3b6a499622a207024e8694363c83afa547cfb6c03c90ca2e43ed51c4df"
+    },
+    {
+      "path": "rizin/share/man/man1/rz-diff.1",
+      "size": 3612,
+      "sha256": "53b4e05e0a9f7f58ddac20d117e2ec9f163bde21640ec090cfbef652f20f4895"
+    },
+    {
+      "path": "rizin/share/man/man1/rz-find.1",
+      "size": 4316,
+      "sha256": "7be4d815892dbcec8dabd10fef07199a2b0a5cd76ce7f95605cb3ddb2de7ed75"
+    },
+    {
+      "path": "rizin/share/man/man1/rz-gg.1",
+      "size": 4112,
+      "sha256": "43f263e10c6142647c51b07e18c7677694b7b6d309c9ea3856f54e68b6756599"
+    },
+    {
+      "path": "rizin/share/man/man1/rz-hash.1",
+      "size": 3056,
+      "sha256": "afc114f9aa4a7544be5aaa65044468eefb6d0e083697de32241bae6a41075995"
+    },
+    {
+      "path": "rizin/share/man/man1/rz-run.1",
+      "size": 5543,
+      "sha256": "f95884c532b0cb2973336d2bcd89ed6c90c19f4e4493e65b7d720a1e19320104"
+    },
+    {
+      "path": "rizin/share/man/man1/rz-sign.1",
+      "size": 1097,
+      "sha256": "830416760801b5d48245e306d133fe1212fd715c85d30f4573bce90a980867de"
+    },
+    {
+      "path": "rizin/share/man/man1/rz-test.1",
+      "size": 1925,
+      "sha256": "0596a10be664514c711d8c9e320824b34c25d21639f991d41f20a0e0cbfdfc7e"
+    },
+    {
+      "path": "rizin/share/man/man7/rz-esil.7",
+      "size": 1213,
+      "sha256": "123b614591567a6c82af476d4ee3a3f7c4ad7e0b97b61310ca1f30c9a8e9e95e"
+    },
+    {
+      "path": "rizin/share/opcodes/6502.sdb",
+      "size": 3925,
+      "sha256": "34ab8dd5b188376bd3568c0ea428f9d8c08813b77f63c0102347b82f6c5dc3aa"
+    },
+    {
+      "path": "rizin/share/opcodes/8051.sdb",
+      "size": 3071,
+      "sha256": "0bd7ab9c80d31b60177efebad4af41227c4a39fc182877aca81f5d7889ace86c"
+    },
+    {
+      "path": "rizin/share/opcodes/LH5801.sdb",
+      "size": 3845,
+      "sha256": "43b3184645a9f227c1462ad11d9c50782fed26bdac8ddc2f768df51357daf3a3"
+    },
+    {
+      "path": "rizin/share/opcodes/arc.sdb",
+      "size": 6412,
+      "sha256": "f84d34a778a72a7a995596bf5e4478024d1ebf0cbeda6bd8586b244accdd5ea8"
+    },
+    {
+      "path": "rizin/share/opcodes/arm.sdb",
+      "size": 10650,
+      "sha256": "9d6777032c0b4d2b5429db3d6e45bdf83e3559934c6cdebd51455da420dcd01a"
+    },
+    {
+      "path": "rizin/share/opcodes/avr.sdb",
+      "size": 6720,
+      "sha256": "ed6742b6ae47d0cf6851a69f0ead47e07da53e40a5194f34600bb76d6f00c466"
+    },
+    {
+      "path": "rizin/share/opcodes/c166.sdb",
+      "size": 2858,
+      "sha256": "c1101d21dc80a85b1949ae5932fa3af7bbe1579286709e13e3fd647ce8b200e0"
+    },
+    {
+      "path": "rizin/share/opcodes/dalvik.sdb",
+      "size": 16200,
+      "sha256": "1d2e75ddae7c507433ee5f21af4cca6015488d7a7acdf8d9f22bd09227e8844b"
+    },
+    {
+      "path": "rizin/share/opcodes/i4004.sdb",
+      "size": 3251,
+      "sha256": "2374b06a4f1653912f2f757658dabe32f0a5373592f24ec9caf0733b24ec2044"
+    },
+    {
+      "path": "rizin/share/opcodes/i8080.sdb",
+      "size": 3782,
+      "sha256": "a7864167e8bf8243a1f3d8eb734d51beddafa213e2d8a7bf37fefcb40e3643bf"
+    },
+    {
+      "path": "rizin/share/opcodes/java.sdb",
+      "size": 13121,
+      "sha256": "b50cde317b8c610788da4f47911678590791c0efffad4aea4c4714a188b87d7e"
+    },
+    {
+      "path": "rizin/share/opcodes/lm32.sdb",
+      "size": 5080,
+      "sha256": "5326798c68ba646d9274cc72ac41b649f9ded8d532c24caa3d6dd44f3dc2d00f"
+    },
+    {
+      "path": "rizin/share/opcodes/m68k.sdb",
+      "size": 10830,
+      "sha256": "0c52d350ce242a36757c131fa794775ed657b50740273a3949a390ce5da1ca0d"
+    },
+    {
+      "path": "rizin/share/opcodes/malbolge.sdb",
+      "size": 1410,
+      "sha256": "0f909068f6601ba7761cdcce5633db44c3eab642f95a50edfc83a640a0a7b3a4"
+    },
+    {
+      "path": "rizin/share/opcodes/mips.sdb",
+      "size": 16815,
+      "sha256": "8c66987c30334c2f8c412e7309b8424d09e71afc4a6a7d6e19f3b594551aa282"
+    },
+    {
+      "path": "rizin/share/opcodes/msp430.sdb",
+      "size": 3941,
+      "sha256": "288dec1f2541a9fce0420928f71cfd58603a9135b0eb36e20d7efb340d807ce7"
+    },
+    {
+      "path": "rizin/share/opcodes/pic18c.sdb",
+      "size": 4533,
+      "sha256": "b9de91fe9c982972314a1f1910840d93c67cc25736033547e6f875d7474b74aa"
+    },
+    {
+      "path": "rizin/share/opcodes/ppc.sdb",
+      "size": 83075,
+      "sha256": "959e01ce1e6c4e7f7ff6767f5f5eb99b335d2b71c621f79ebf0f77972e8a4f8f"
+    },
+    {
+      "path": "rizin/share/opcodes/propeller.sdb",
+      "size": 6297,
+      "sha256": "bfe0b3457f072ea8de6cfee28df57102d7a0e3fcfbd44c4d1577f1e553536b83"
+    },
+    {
+      "path": "rizin/share/opcodes/riscv.sdb",
+      "size": 15792,
+      "sha256": "d30917630d3441d79a365ffefce8d3434c84358243446b4032d0e76ffa82344a"
+    },
+    {
+      "path": "rizin/share/opcodes/rl78.sdb",
+      "size": 4998,
+      "sha256": "e38feb73f422032a1ef381973c6a9ea184baab9a213e320655d689171bd9441b"
+    },
+    {
+      "path": "rizin/share/opcodes/rx.sdb",
+      "size": 8878,
+      "sha256": "bc7d63a58a198dbcb105f3ba37d55b77986ab5b0850f5d383463041ecf35fa50"
+    },
+    {
+      "path": "rizin/share/opcodes/sh.sdb",
+      "size": 7230,
+      "sha256": "56a29b97d0c019beaf7bcd406a55ae08e35fabbe3bf15ecdb6f6fbd730da4bf3"
+    },
+    {
+      "path": "rizin/share/opcodes/sparc.sdb",
+      "size": 9600,
+      "sha256": "61f103e831a1128e224269b87202290725055ed3a0761a263a028ced577ff3f2"
+    },
+    {
+      "path": "rizin/share/opcodes/sysz.sdb",
+      "size": 55845,
+      "sha256": "e5aff3d723821ef549ffa1c0017e3e3a430321acf3f36abf40196a93d92b5476"
+    },
+    {
+      "path": "rizin/share/opcodes/tms320.sdb",
+      "size": 2501,
+      "sha256": "9bbf944828f98d918ba9a7ee2557ccdba7f6df8d3f7babb1e16edcb08763ba9a"
+    },
+    {
+      "path": "rizin/share/opcodes/tricore.sdb",
+      "size": 5362,
+      "sha256": "f926ba2398dc7a934dc4232d8de9b1ad7f6b3067f938cf747b03e8da47921d83"
+    },
+    {
+      "path": "rizin/share/opcodes/v810.sdb",
+      "size": 4725,
+      "sha256": "a2d95c10c2c1b318d08a73cb8375f3ec9aa5c6b38db24024203ab41602db9b5d"
+    },
+    {
+      "path": "rizin/share/opcodes/v850.sdb",
+      "size": 7186,
+      "sha256": "3e3ac144ae5fea0b3e9a5b4aba8e237f46ef39d7b9d5f6b6f08ea753c95e61c6"
+    },
+    {
+      "path": "rizin/share/opcodes/x86.sdb",
+      "size": 100726,
+      "sha256": "2eb3842b1abd79f209bc6bf0bdee0668ba108412f94220a916ae4900fc2c3c30"
+    },
+    {
+      "path": "rizin/share/opcodes/xtensa.sdb",
+      "size": 12994,
+      "sha256": "1337f762e31e3f78c33ac69fef9deefe36b58c3457100fb975e30c5c1d902a31"
+    },
+    {
+      "path": "rizin/share/opcodes/z80.sdb",
+      "size": 5278,
+      "sha256": "97ea88e8977222acd8af593a8381d01d2c45539bde875160dd451ff39bae3f49"
+    },
+    {
+      "path": "rizin/share/reg/avr-ATmega8-8.sdb",
+      "size": 9946,
+      "sha256": "1fdc14f9300b01b7623008dac029303335732bf14586e3dad672b10d8e787476"
+    },
+    {
+      "path": "rizin/share/syscall/darwin-arm-32.sdb",
+      "size": 31925,
+      "sha256": "9ea5cb98329ad629d8f4c339624ff7a65837781375a72451435591c1b9ceb8c3"
+    },
+    {
+      "path": "rizin/share/syscall/darwin-arm-64.sdb",
+      "size": 31925,
+      "sha256": "374c91f2aa2cc7ecfeab3fab33a0a1be35f4ffc752a69891e6b26647e41f2498"
+    },
+    {
+      "path": "rizin/share/syscall/darwin-x86-32.sdb",
+      "size": 39705,
+      "sha256": "78b780fa40ad7c3234ebd4e675d88fc8accd9efd7d78eead79ff2cc96d7c007b"
+    },
+    {
+      "path": "rizin/share/syscall/darwin-x86-64.sdb",
+      "size": 44423,
+      "sha256": "82e7834aaa139a96fb49f6569f082d25c46bcb39ce872b7b9dcef52682865034"
+    },
+    {
+      "path": "rizin/share/syscall/dos-x86-16.sdb",
+      "size": 10870,
+      "sha256": "381622aba67c1ad52b92dff4a7c2f29a2658e532f8c4b148d14ea6c2aa9f8f08"
+    },
+    {
+      "path": "rizin/share/syscall/freebsd-x86-32.sdb",
+      "size": 6447,
+      "sha256": "18f60786f874e9363536d9d3c6b4676d464d2c578e2c3a082784ebe0c17fcd69"
+    },
+    {
+      "path": "rizin/share/syscall/ios-arm-32.sdb",
+      "size": 31925,
+      "sha256": "9ea5cb98329ad629d8f4c339624ff7a65837781375a72451435591c1b9ceb8c3"
+    },
+    {
+      "path": "rizin/share/syscall/ios-arm-64.sdb",
+      "size": 31925,
+      "sha256": "374c91f2aa2cc7ecfeab3fab33a0a1be35f4ffc752a69891e6b26647e41f2498"
+    },
+    {
+      "path": "rizin/share/syscall/ios-x86-32.sdb",
+      "size": 26040,
+      "sha256": "a55d4bc55a63a671394ff131b3ed3e0b080cb0678b3aa78d8de41ad09b314c81"
+    },
+    {
+      "path": "rizin/share/syscall/linux-arm-32.sdb",
+      "size": 4696,
+      "sha256": "cd1cff5eb64dad9b28c674d49dd95cd8c533066d7b403f9f4ab51cbd294ad342"
+    },
+    {
+      "path": "rizin/share/syscall/linux-arm-64.sdb",
+      "size": 23677,
+      "sha256": "d74a19419dedd7689f3420b169971a2fbfb6ba13d1bd4c277b32abefcf409c02"
+    },
+    {
+      "path": "rizin/share/syscall/linux-mips-32.sdb",
+      "size": 4707,
+      "sha256": "0418c90db3207a00273d0307dcad40f79e63e05726e34df562d024ef61b4f59e"
+    },
+    {
+      "path": "rizin/share/syscall/linux-sparc-32.sdb",
+      "size": 3474,
+      "sha256": "6044666d902576a749c1a67ab7461ca575dc5c29d9e334faada12ed198eb6eab"
+    },
+    {
+      "path": "rizin/share/syscall/linux-x86-32.sdb",
+      "size": 35402,
+      "sha256": "b4ec62bcb764a1e1cb0e2a601d86ccbf4e4a5a0c5468cba5efc74411416ce854"
+    },
+    {
+      "path": "rizin/share/syscall/linux-x86-64.sdb",
+      "size": 30276,
+      "sha256": "f762441510e7f867fa5d73bea29673b309953e1d995a50320dd5065292780eba"
+    },
+    {
+      "path": "rizin/share/syscall/netbsd-x86-32.sdb",
+      "size": 1865,
+      "sha256": "f6f719866af42f02f8299464a12a4b0fbf5e432013dd5a34268eb4825af2e28f"
+    },
+    {
+      "path": "rizin/share/syscall/openbsd-x86-32.sdb",
+      "size": 15315,
+      "sha256": "ecb7e3a027f470616ebf2bc37de76aba0830c9a83be3b1042bcaa5bfcd08cdfb"
+    },
+    {
+      "path": "rizin/share/syscall/openbsd-x86-64.sdb",
+      "size": 15315,
+      "sha256": "ecb7e3a027f470616ebf2bc37de76aba0830c9a83be3b1042bcaa5bfcd08cdfb"
+    },
+    {
+      "path": "rizin/share/syscall/s110-arm-16.sdb",
+      "size": 15233,
+      "sha256": "276dbe8f008ae195862fc18df3c0e622d8606e68d02abd2f6442b5e4e6c91568"
+    },
+    {
+      "path": "rizin/share/syscall/windows-x86-32.sdb",
+      "size": 137644,
+      "sha256": "fa94f52952012472aaef3de3f5e0f2f5e2d3237f15793e6794d4f93eb264c208"
+    },
+    {
+      "path": "rizin/share/syscall/windows-x86-64.sdb",
+      "size": 137644,
+      "sha256": "fa94f52952012472aaef3de3f5e0f2f5e2d3237f15793e6794d4f93eb264c208"
+    },
+    {
+      "path": "rizin/share/types/cc-arm-16.sdb",
+      "size": 1569,
+      "sha256": "ccfd69132d9fa29ba3e514d9fca434f121a7787023cfb1cc8faa44b9ff8126c1"
+    },
+    {
+      "path": "rizin/share/types/cc-arm-32.sdb",
+      "size": 1860,
+      "sha256": "9ec744b0b12097ff9436c8cbda02433646e9c7682dcc91fd5482cda4f16f4695"
+    },
+    {
+      "path": "rizin/share/types/cc-arm-64.sdb",
+      "size": 2018,
+      "sha256": "2fdedc78fab47071ec51a3813a6ffe10abefbb340f54fa04983257a6f7259198"
+    },
+    {
+      "path": "rizin/share/types/cc-avr-8.sdb",
+      "size": 1448,
+      "sha256": "4b0de056a05e175c65d4bb4a4862f496a526a585c5f14f32b730a0c8f1faca89"
+    },
+    {
+      "path": "rizin/share/types/cc-hexagon-32.sdb",
+      "size": 2160,
+      "sha256": "7a200cd9d766f8e3ed5fb5f2b0f38161e047a7730a1d5ba862b6a01860e65f56"
+    },
+    {
+      "path": "rizin/share/types/cc-m68k-32.sdb",
+      "size": 1204,
+      "sha256": "939c0635b9d3f6bddcd7bc42a3577beae98548dad20f28901b2b186005e9e14e"
+    },
+    {
+      "path": "rizin/share/types/cc-mips-32.sdb",
+      "size": 2167,
+      "sha256": "67c099b7cc3607d18a30f625a7260c480f3d30c0d552d4b9b5f18eba36351d1e"
+    },
+    {
+      "path": "rizin/share/types/cc-mips-64.sdb",
+      "size": 2167,
+      "sha256": "67c099b7cc3607d18a30f625a7260c480f3d30c0d552d4b9b5f18eba36351d1e"
+    },
+    {
+      "path": "rizin/share/types/cc-ppc-32.sdb",
+      "size": 1519,
+      "sha256": "a0dd985d81880fbea43373d86b4e0818b3c94b18c2725d73557c0c1a71149e6c"
+    },
+    {
+      "path": "rizin/share/types/cc-ppc-64.sdb",
+      "size": 1519,
+      "sha256": "c4db6c0fe326866ec01d2e0ec34a3aa54e109a1a83ec5a1302d286c4cf7d6462"
+    },
+    {
+      "path": "rizin/share/types/cc-riscv-64.sdb",
+      "size": 1437,
+      "sha256": "4115ebce048f46203913f71fa22a455fa593c8452bc73c358125e8a3579e7054"
+    },
+    {
+      "path": "rizin/share/types/cc-sparc-32.sdb",
+      "size": 1427,
+      "sha256": "3ba9947d5cc76517e5f662c1d3a64382d10e5ff934078d68a89070b44a46ba24"
+    },
+    {
+      "path": "rizin/share/types/cc-spc700-16.sdb",
+      "size": 1279,
+      "sha256": "2dfaa6d85027b28f40d3c38cc08e4b9ce741bb12d1845c95da007dc209a7f5fd"
+    },
+    {
+      "path": "rizin/share/types/cc-sysz-64.sdb",
+      "size": 1341,
+      "sha256": "8cfee245326c6ed5abb51d99decde3117a61c7469a3de78c7bd705e9620739b9"
+    },
+    {
+      "path": "rizin/share/types/cc-tms320-32.sdb",
+      "size": 1420,
+      "sha256": "7ee5dedb2527d53ca1dfe7ad1fe71df0e7a6fb55afdc735cae01d0d5e0e7fa92"
+    },
+    {
+      "path": "rizin/share/types/cc-tricore-32.sdb",
+      "size": 1619,
+      "sha256": "cef6f86e7bebd466aec1ec8129f168f749af30d5593078c16f4e2e238b7af940"
+    },
+    {
+      "path": "rizin/share/types/cc-x86-16.sdb",
+      "size": 2383,
+      "sha256": "b5ab770c9ea53b874a8f42a2436c8711fcf606b176412f3366013a91eac7dbb4"
+    },
+    {
+      "path": "rizin/share/types/cc-x86-32.sdb",
+      "size": 2734,
+      "sha256": "5d7ec5078a2ca9692b02dbf92327e61588221e437c57c39aa6e979defbaa3dbd"
+    },
+    {
+      "path": "rizin/share/types/cc-x86-64.sdb",
+      "size": 2859,
+      "sha256": "0ed9e0db6afa6d6b5701092a48ac746ddc5add3ff1b25616fd1fd7eccd545cbc"
+    },
+    {
+      "path": "rizin/share/types/cc-xtensa-32.sdb",
+      "size": 1427,
+      "sha256": "13f9aeaab421d3e36886df389d696f3bfa1e333e079e6bd65509e001e05e6e26"
+    },
+    {
+      "path": "rizin/share/types/functions-android.sdb",
+      "size": 2688,
+      "sha256": "3a6a14c827a3a48702452c237c9aa5bb44774c3d316f23834486a9d3ebda478a"
+    },
+    {
+      "path": "rizin/share/types/functions-libc.sdb",
+      "size": 102784,
+      "sha256": "4dbfda17a784982542fcf6f77bfddd0c5bdf52ca76a0d79e92096f15d83e0727"
+    },
+    {
+      "path": "rizin/share/types/functions-linux.sdb",
+      "size": 8826,
+      "sha256": "e3101baaf60d1eceee94fdc08d5c889fa371468354a50f2a0111d2ed36f7cc08"
+    },
+    {
+      "path": "rizin/share/types/functions-macos.sdb",
+      "size": 9717,
+      "sha256": "8da545f258463cdd4cd71c5f65c5465cead9e8ec5e9b1935c74a38b83d5db588"
+    },
+    {
+      "path": "rizin/share/types/functions-windows.sdb",
+      "size": 1998943,
+      "sha256": "9d02b5a5249a22ca084584680c56d1aeec4812b79a3e819d7ce284391654afb3"
+    },
+    {
+      "path": "rizin/share/types/spec.sdb",
+      "size": 1646,
+      "sha256": "faa13b03db892183503c22671e0017e5e7beb60131f88f2997cfd23e795536b2"
+    },
+    {
+      "path": "rizin/share/types/types-16.sdb",
+      "size": 4018,
+      "sha256": "ef5e69bf9b9fd3c404d86b3afd78bd73c826df977250d70b47b8923f5e67e7a3"
+    },
+    {
+      "path": "rizin/share/types/types-32.sdb",
+      "size": 4018,
+      "sha256": "d9714aa9e8f33cf64c77d6ef69e9fb8ae6ce6c340fe779e45d93d4bc3680e7b6"
+    },
+    {
+      "path": "rizin/share/types/types-64.sdb",
+      "size": 4018,
+      "sha256": "0508ed9afb41e948a360b897617604d9844517d3ae2321b0b0152bd579bb41cb"
+    },
+    {
+      "path": "rizin/share/types/types-android.sdb",
+      "size": 2153,
+      "sha256": "1c60d250bba46f30e2df9c93e371c48b4909c4c9f411862eef58656043ad1e4f"
+    },
+    {
+      "path": "rizin/share/types/types-arm-ios-16.sdb",
+      "size": 2767,
+      "sha256": "7ec1d4a139ebe7f621bb5abe4ec692a71d5700a634570f4bd9775ca3ebf3e769"
+    },
+    {
+      "path": "rizin/share/types/types-arm-ios-32.sdb",
+      "size": 3550,
+      "sha256": "d547f109253d322c09669cbe70d8c434d1c02d53b39651348daec7ad54b71162"
+    },
+    {
+      "path": "rizin/share/types/types-arm-ios-64.sdb",
+      "size": 3550,
+      "sha256": "298364f0934ced0c942f30c5fa4fea51b0ca6b66616e055769d69d96c72b63d9"
+    },
+    {
+      "path": "rizin/share/types/types-atomic.sdb",
+      "size": 13923,
+      "sha256": "98f521ebbb8cac7aa6be67224d2026f14551fcdbdb00715b8432a2276a6bb471"
+    },
+    {
+      "path": "rizin/share/types/types-libc.sdb",
+      "size": 5859,
+      "sha256": "e88cfcd67facd1b16cd44f9ad3ce51d1470809bd6d1972cd09367d1bd88de0ff"
+    },
+    {
+      "path": "rizin/share/types/types-linux.sdb",
+      "size": 4247,
+      "sha256": "eaa0992f529d41d5de6cc1c981758b453338b1986e9f0381beda46856e1074d8"
+    },
+    {
+      "path": "rizin/share/types/types-macos.sdb",
+      "size": 4542,
+      "sha256": "b4e03663ed86529527300ef10acffee9420a52d1588e85486da085ba71482804"
+    },
+    {
+      "path": "rizin/share/types/types-windows.sdb",
+      "size": 119983,
+      "sha256": "5fb16afd35c101ffeb44ea3d1c031add451e18c4b9f7d9824a293358d5167e38"
+    },
+    {
+      "path": "rizin/share/types/types-x86-macos-64.sdb",
+      "size": 2767,
+      "sha256": "7ec1d4a139ebe7f621bb5abe4ec692a71d5700a634570f4bd9775ca3ebf3e769"
+    },
+    {
+      "path": "rizin/share/types/types-x86-windows-32.sdb",
+      "size": 266424,
+      "sha256": "7f46e040246bf8e3f799675dbafaaf430c144f7f1304b4228038533d310c5e56"
+    },
+    {
+      "path": "rizin/share/types/types-x86-windows-64.sdb",
+      "size": 243309,
+      "sha256": "c75d8fe096b5124c7cd52028b39dc777d53ab095e76502eb0f89f367b64dacb1"
+    }
+  ]
+}

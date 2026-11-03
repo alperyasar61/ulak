@@ -12,7 +12,9 @@
     "build": "pnpm --filter @ulak/backend build && pnpm --filter @ulak/frontend build",
     "start": "pnpm --filter @ulak/backend start",
     "typecheck": "pnpm -r typecheck",
-    "test": "pnpm --filter @ulak/backend test"
+    "test": "pnpm --filter @ulak/backend test",
+    "verify:tools": "node scripts/verify-tools.mjs",
+    "manifest:tools": "node scripts/generate-tools-manifest.mjs"
   },
   "devDependencies": {
     "concurrently": "9.2.1"
