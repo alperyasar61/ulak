@@ -21,6 +21,8 @@ import {
   type TestInventory,
   type WrapperInfo,
 } from "./inspect.js";
+import { evaluateChecklist, type ChecklistItem } from "./checklist.js";
+import { detectTraps, type TrapHit } from "./traps.js";
 
 const require = createRequire(import.meta.url);
 const seven = require("7zip-min") as {
@@ -70,6 +72,10 @@ export interface LocalReport {
   manifestNotes?: ManifestNote[];
   /** §5 — olumsuz bulguların dayandığı aramalar. */
   absenceEvidence?: AbsenceEvidence[];
+  /** §8 — 24 maddelik kontrol listesinin değerlendirmesi. */
+  checklist?: ChecklistItem[];
+  /** §7 — 13 tuzağın tespit durumu. */
+  traps?: TrapHit[];
   learningNotes?: Array<{ id: string; title: string; recommendation: string; scansSeen: number }>;
   secretFileCount: number;
   analyzedAt: string;
@@ -399,6 +405,8 @@ export async function analyzeArchive(bytes: Buffer, originalName: string): Promi
     if (selected.length) await seven.unpackSome(archivePath, selected.map((entry) => entry.raw), output);
 
     const textFiles: Array<{ path: string; content: string }> = [];
+    /** Tuzak #3: BOM'u kırıyoruz ama tespiti kaybetmiyoruz — ayrı listede tutulur. */
+    const bomFiles: string[] = [];
     for (const entry of selected) {
       const target = path.resolve(output, ...entry.path.split("/"));
       if (!target.startsWith(`${output}${path.sep}`)) throw new Error("Arşiv çıkarma yolu çalışma alanının dışına çıktı.");
@@ -407,7 +415,12 @@ export async function analyzeArchive(bytes: Buffer, originalName: string): Promi
         if (!info.isFile() || info.isSymbolicLink() || info.size > MAX_TEXT_PER_FILE) continue;
         const buffer = await readFile(target);
         if (buffer.includes(0)) continue;
-        textFiles.push({ path: entry.path, content: buffer.toString("utf8").slice(0, MAX_TEXT_PER_FILE) });
+        let content = buffer.toString("utf8");
+        if (content.charCodeAt(0) === 0xfeff) {
+          bomFiles.push(entry.path);
+          content = content.slice(1);
+        }
+        textFiles.push({ path: entry.path, content: content.slice(0, MAX_TEXT_PER_FILE) });
       } catch {
         // Some archivers preserve a wrapper directory; an unextracted candidate is omitted rather than guessed.
       }
@@ -442,6 +455,32 @@ export async function analyzeArchive(bytes: Buffer, originalName: string): Promi
     const purpose = buildPurpose(textFiles);
     const phase2 = analyzePhase2(textFiles);
     const findings = [...findStaticSignals(textFiles, archiveNames, tests, license), ...phase2.findings];
+    const traps = detectTraps({
+      archiveNames,
+      files: textFiles,
+      bomFiles,
+      license,
+      tests,
+      sizeHotspots,
+      wrapper,
+      symbolFileCount: symbols.files.length,
+    });
+    const checklist = evaluateChecklist({
+      archiveNames,
+      fileCount: entries.length,
+      analyzedFiles: textFiles.length,
+      license,
+      symbols,
+      tests,
+      sizeHotspots,
+      wrapper,
+      manifestNotes,
+      absenceEvidence,
+      dependencies,
+      manifestFiles: archiveNames.filter((name) => /(^|\/)(package\.json|pyproject\.toml|requirements[^/]*\.txt|cargo\.toml|go\.mod|pom\.xml|build\.gradle|composer\.json|gemfile)$/i.test(name)).slice(0, 8),
+      entryPoints,
+      findings,
+    });
     const relationships = collectRelationships(textFiles);
     const proactiveAudit = buildProactiveAudit({
       archiveNames,
@@ -474,6 +513,8 @@ export async function analyzeArchive(bytes: Buffer, originalName: string): Promi
       wrapper,
       manifestNotes,
       absenceEvidence,
+      checklist,
+      traps,
       secretFileCount: archiveNames.filter((name) => SECRET_FILENAMES.has(path.posix.basename(name).toLowerCase()) || path.posix.basename(name).toLowerCase().startsWith(".env")).length,
       analyzedAt: new Date().toISOString(),
     };
@@ -517,6 +558,8 @@ export async function analyzeArchive(bytes: Buffer, originalName: string): Promi
       wrapper,
       manifestNotes: manifestNotes.slice(0, 12),
       absenceEvidence,
+      checklist: checklist.map((item) => ({ id: item.id, group: item.group, title: item.title, status: item.status })),
+      traps: traps.filter((trap) => trap.detected).map((trap) => ({ id: trap.id, title: trap.title, evidence: trap.evidence })),
       secretFileCount: report.secretFileCount,
       analyzedAt: report.analyzedAt,
     };

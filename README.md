@@ -94,7 +94,7 @@ Kullanıcı onayı olmadan yeni serbest biçimli öğrenme notu eklenmez. Açık
 
 ### İnceleme katmanları (lisans, sembol, test, kanıt)
 
-Arşiv kabul edildiğinde altı okuma katmanı ölçüm üretir; her ölçüm **Mimari** sekmesindeki “Okuma katmanları” panelinde ve Markdown dökümünde görünür. Katmanlar yorum değil kanıt üretir:
+Arşiv kabul edildiğinde sekiz okuma katmanı ölçüm üretir; her ölçüm **Mimari** sekmesindeki “Okuma katmanları” panelinde ve Markdown dökümünde görünür. Katmanlar yorum değil kanıt üretir:
 
 | Katman | Ne ölçülür | Nerede |
 | --- | --- | --- |
@@ -104,8 +104,12 @@ Arşiv kabul edildiğinde altı okuma katmanı ölçüm üretir; her ölçüm **
 | Boyut ve sarmalayıcı | 20 MB üstü dosyalar sıralanır; tüm öğelerin tek kök klasör altında ve bu klasörün yinelenerek gelmesi çift iç içe ZIP işareti sayılır. | `apps/backend/src/inspect.ts` |
 | Manifest gerekçeleri | Bağımlılık dosyalarındaki “neden” yorumları (pin, çakışma, hariç tutma) satır numarasıyla çıkarılır. | `apps/backend/src/inspect.ts` |
 | Yokluk kanıtları | “README yok”, “test yok”, “lisans yok” gibi olumsuz bulgular hangi aramaların yapıldığını taşır. | `apps/backend/src/inspect.ts` |
+| Tuzak kataloğu | Metodolojideki 13 tuzağın ölçümle doğrulanabilenleri (çift iç içe ZIP, BOM, README≠lisans, kod≠ağırlık lisansı, boş dil dağılımı, yanıltıcı boyut, tek başına test sayısı, eksik test deseni) tespit edilir. Süreç tuzakları katalogda kalır ama “tespit edildi” sayılmaz. | `apps/backend/src/traps.ts` |
+| Kontrol listesi | 24 maddelik kontrol listesi `geçti` / `eksik` / `kanıtlanamaz` olarak değerlendirilir. “Kanıtlanamaz” süreç kararıdır; geçti sayılmaz, eksik gibi de gösterilmez. | `apps/backend/src/checklist.ts` |
 
 Lisans sınıfı A olan projeler için lisans bulgusu üretilmez; gürültü gerçek riski gizler. Sınıf C ve E, proaktif denetimde yüksek önem derecesiyle raporlanır. Yeni alanlar `LocalReport` içinde isteğe bağlıdır, böylece bu katmanlar eklenmeden önce kaydedilmiş projeler bozulmadan açılır.
+
+Okuma sırasında UTF-8 BOM kırpılır; aksi hâlde `package.json` gibi manifestler ayrıştırılamaz ve bağımlılık listesi sessizce boş kalır. BOM’lu dosyalar ayrıca kaydedilir, böylece tuzak #3 tespiti kaybolmaz.
 
 ### API / webservis çalışma alanları
 

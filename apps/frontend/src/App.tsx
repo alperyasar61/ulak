@@ -1188,8 +1188,16 @@ function InspectionLayers({ report }: { report: Project["localReport"] }) {
   const wrapper = report.wrapper;
   const notes = report.manifestNotes ?? [];
   const absence = report.absenceEvidence ?? [];
-  const hasAny = Boolean(license || symbols || tests || hotspots.length || wrapper?.root || notes.length || absence.length);
+  const traps = report.traps ?? [];
+  const checklist = report.checklist ?? [];
+  const hasAny = Boolean(license || symbols || tests || hotspots.length || wrapper?.root || notes.length || absence.length || traps.length || checklist.length);
   if (!hasAny) return null;
+
+  const detectedTraps = traps.filter((trap) => trap.detected);
+  const checklistPass = checklist.filter((item) => item.status === "pass").length;
+  const checklistFail = checklist.filter((item) => item.status === "fail").length;
+  const checklistUnknown = checklist.filter((item) => item.status === "unknown").length;
+  const checklistGroups = [...new Set(checklist.map((item) => item.group))];
 
   return (
     <section className="panel inspection-panel">
@@ -1198,7 +1206,7 @@ function InspectionLayers({ report }: { report: Project["localReport"] }) {
           <span className="panel-overline">OKUMA KATMANLARI</span>
           <h2>Lisans, sembol, test ve kanıt</h2>
         </div>
-        <span className="subtle-chip">6 katman</span>
+        <span className="subtle-chip">8 katman</span>
       </div>
 
       {license ? (
@@ -1315,6 +1323,48 @@ function InspectionLayers({ report }: { report: Project["localReport"] }) {
               </div>
             ))}
           </div>
+        </div>
+      ) : null}
+
+      {detectedTraps.length ? (
+        <div className="inspection-block">
+          <div className="inspection-head">
+            <span>TUZAK KATALOĞU</span>
+            <span className="license-badge license-C">{detectedTraps.length} tespit</span>
+          </div>
+          <p className="muted-text">Metodolojideki 13 tuzaktan bu arşivde ölçümle doğrulananlar. Tespit edilemeyen tuzak “yok” sayılmaz; yalnızca bu ölçümlerle görünmediği kayda geçer.</p>
+          <div className="symbol-list">
+            {detectedTraps.map((trap) => (
+              <div key={trap.id} className="absence-row">
+                <strong>#{trap.id} {trap.title}</strong>
+                <span>{trap.evidence.join(" · ") || trap.symptom}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {checklist.length ? (
+        <div className="inspection-block">
+          <div className="inspection-head">
+            <span>KONTROL LİSTESİ · 24 MADDE</span>
+            <span className="subtle-chip">{checklistPass} geçti · {checklistFail} eksik · {checklistUnknown} kanıtlanamaz</span>
+          </div>
+          <p className="muted-text">“Kanıtlanamaz” maddeler süreç kararıdır (ör. “bitti” tanımı yazıldı mı); geçti sayılmaz, eksik gibi de gösterilmez.</p>
+          {checklistGroups.map((group) => (
+            <div key={group} className="checklist-group">
+              <span className="checklist-group-title">{group}</span>
+              <div className="symbol-list">
+                {checklist.filter((item) => item.group === group).map((item) => (
+                  <div key={item.id} className="checklist-row">
+                    <span className={"checklist-status checklist-" + item.status}>{item.status === "pass" ? "✓" : item.status === "fail" ? "!" : "?"}</span>
+                    <span className="checklist-title">{item.id}. {item.title}</span>
+                    <span className="checklist-evidence">{item.evidence.join(" · ")}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       ) : null}
     </section>

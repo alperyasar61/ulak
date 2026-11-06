@@ -121,6 +121,32 @@ export function renderDossier(input: DossierInput) {
     push(...table(["Bulgu", "İddia", "Yapılan aramalar"], report.absenceEvidence.map((item) => [item.id, item.claim, item.searches.join(" · ")])));
   }
 
+  if (report.traps) {
+    const detected = report.traps.filter((trap) => trap.detected);
+    push(`### Tuzak kataloğu`, "");
+    push(`Metodolojideki 13 tuzağın bu arşivde tespit edilenleri. Tespit edilemeyen bir tuzak "yok" sayılmaz; yalnızca bu ölçümlerle görünmediği kayda geçer.`, "");
+    push(...(detected.length
+      ? table(["#", "Tuzak", "Belirti", "Kanıt"], detected.map((trap) => [String(trap.id), trap.title, trap.symptom, trap.evidence.join(" · ") || "-"]))
+      : ["_Bu ölçümlerle tespit edilen tuzak yok._", ""]));
+  }
+
+  if (report.checklist?.length) {
+    const summary = {
+      pass: report.checklist.filter((item) => item.status === "pass").length,
+      fail: report.checklist.filter((item) => item.status === "fail").length,
+      unknown: report.checklist.filter((item) => item.status === "unknown").length,
+    };
+    push(`### Kontrol listesi (24 madde)`, "");
+    push(`**${summary.pass}** geçti · **${summary.fail}** eksik · **${summary.unknown}** otomatik kanıtlanamaz. "Otomatik kanıtlanamaz" maddeler süreç kararıdır; geçti sayılmaz.`, "");
+    const groups = [...new Set(report.checklist.map((item) => item.group))];
+    for (const group of groups) {
+      push(`#### ${group}`, "");
+      push(...table(["#", "Madde", "Durum", "Kanıt"], report.checklist
+        .filter((item) => item.group === group)
+        .map((item) => [String(item.id), item.title, item.status === "pass" ? "geçti" : item.status === "fail" ? "**eksik**" : "kanıtlanamaz", item.evidence.join(" · ") || "-"])));
+    }
+  }
+
   push(`## 3. Proje haritası`, "");
   push(`### Klasör dağılımı`, "");
   push(...table(["Klasör", "Dosya"], (report.modules ?? []).map((module) => [`\`${module.name}/\``, String(module.files)])));

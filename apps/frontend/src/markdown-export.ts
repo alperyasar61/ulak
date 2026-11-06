@@ -99,6 +99,8 @@ function projectScreenData(project: Project, screen: ProjectScreen, messages: Ch
         wrapper: report.wrapper ?? null,
         manifestNotes: report.manifestNotes ?? [],
         absenceEvidence: report.absenceEvidence ?? [],
+        traps: report.traps ?? [],
+        checklist: report.checklist ?? [],
       };
     case "findings":
       return {

@@ -48,6 +48,8 @@ sırayı izler. Her katman ayrı modülde, ayrı test dosyasıyla doğrulanır.
 | Boyut / sarmalayıcı | `apps/backend/src/inspect.ts` | `inspect.test.ts` | `report.sizeHotspots`, `report.wrapper` |
 | Manifest gerekçeleri | `apps/backend/src/inspect.ts` | `inspect.test.ts` | `report.manifestNotes` |
 | Yokluk kanıtları | `apps/backend/src/inspect.ts` | `inspect.test.ts` | `report.absenceEvidence` |
+| Tuzak kataloğu | `apps/backend/src/traps.ts` | `traps.test.ts` | `report.traps` |
+| Kontrol listesi | `apps/backend/src/checklist.ts` | `checklist.test.ts` | `report.checklist` |
 
 Kurallar:
 
@@ -60,6 +62,15 @@ Kurallar:
   `searchedPatterns` alanında gösterir.
 - **Yeni alanlar isteğe bağlıdır.** `LocalReport` alanları `?` ile tanımlıdır; MySQL'de duran eski
   `local_report_json` kayıtları bu katmanlar eklenmeden önce yazıldığı için bozulmadan açılmalıdır.
+- **BOM okuma anında kırpılır, tespiti korunur.** `\uFEFF` ile başlayan dosya kırpılmadan ayrıştırılırsa
+  `package.json` okunamaz ve bağımlılık listesi sessizce boş kalır (tuzak #3'ün gerçek sonucu). Kırpılan
+  dosyalar `bomFiles` listesinde tutulur; tuzak #3 kanıtı bu listeden üretilir.
+- **Tespit edilemeyen tuzak “yok” sayılmaz.** `traps.ts` içindeki `detectable: false` kayıtları süreç
+  tuzağıdır (betik yazımı, alt ajan modeli, çerçeve içi API değişimi). Katalogda görünürler ama asla
+  `detected: true` olmazlar.
+- **Kontrol listesinde üç durum vardır.** `pass` / `fail` / `unknown`. `unknown` süreç kararıdır
+  (“bitti” tanımı yazıldı mı, gövde okundu mu); geçti sayılmaz, eksik gibi de gösterilmez. İki durumlu
+  bir liste, yapılmamış bir işi yapılmış gibi gösterirdi.
 
 ## 4. Değişiklikten önce geri dönüş yolu
 

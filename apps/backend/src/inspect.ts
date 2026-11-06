@@ -166,7 +166,7 @@ export function extractSymbols(files: TextFile[], manifestBytes: Map<string, num
   };
 }
 
-const TEST_FILE_PATTERNS: Array<{ label: string; pattern: RegExp }> = [
+export const TEST_FILE_PATTERNS: Array<{ label: string; pattern: RegExp }> = [
   { label: "test_*.py / *_test.py", pattern: /(^|\/)test_[^/]*\.py$|(^|\/)[^/]*_test\.py$/i },
   { label: "*.test.ts(x) / *.spec.ts(x)", pattern: /\.(test|spec)\.(ts|tsx|js|jsx|mjs|cjs)$/i },
   { label: "*_test.go", pattern: /_test\.go$/i },

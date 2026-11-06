@@ -24,6 +24,9 @@ export interface SizeHotspot { path: string; bytes: number; }
 export interface WrapperInfo { root: string | null; doubleNested: boolean; depth: number; }
 export interface ManifestNote { file: string; line: number; text: string; }
 export interface AbsenceEvidence { id: string; claim: string; searches: string[]; }
+export type ChecklistStatus = "pass" | "fail" | "unknown";
+export interface ChecklistItem { id: number; group: string; title: string; status: ChecklistStatus; evidence: string[]; }
+export interface TrapHit { id: number; title: string; symptom: string; fix: string; detectable: boolean; detected: boolean; evidence: string[]; }
 export interface SecurityLearningNote {
   id: string;
   title: string;
@@ -56,6 +59,8 @@ export interface LocalReport {
   wrapper?: WrapperInfo;
   manifestNotes?: ManifestNote[];
   absenceEvidence?: AbsenceEvidence[];
+  checklist?: ChecklistItem[];
+  traps?: TrapHit[];
   learningNotes?: SecurityLearningNote[];
   secretFileCount: number;
   analyzedAt: string;

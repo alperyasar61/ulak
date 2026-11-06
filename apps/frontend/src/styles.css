@@ -340,6 +340,16 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .absence-row strong { color: #47655b; font-weight: 650; }
 .absence-row span { color: #8b978d; overflow-wrap: anywhere; }
 
+.checklist-group { margin-top: 12px; }
+.checklist-group-title { display: block; color: #93a094; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 4px; }
+.checklist-row { display: grid; grid-template-columns: 20px minmax(0, 1.1fr) minmax(0, 1fr); gap: 10px; align-items: baseline; padding: 6px 10px; border-top: 1px solid #f0efe8; font-size: 11.5px; }
+.checklist-row:first-child { border-top: 0; }
+.checklist-status { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; font-size: 10px; font-weight: 700; }.checklist-pass { background: #e6f0e6; color: #4d7a58; }
+.checklist-fail { background: #f7e6e2; color: #b66659; }
+.checklist-unknown { background: #f0efe8; color: #8b978d; }
+.checklist-title { color: #47655b; font-weight: 600; }
+.checklist-evidence { color: #8b978d; overflow-wrap: anywhere; }
+
 .roadmap-list { display: flex; flex-direction: column; gap: 10px; }
 .roadmap-card { display: grid; grid-template-columns: 46px minmax(0,1fr) 142px; gap: 14px; background: #fffefa; border: 1px solid #e8e7df; border-radius: 11px; padding: 15px; }
 .roadmap-index { position: relative; color: #78a18a; font-family: Georgia, serif; font-size: 18.5px; text-align: center; padding-top: 2px; }
