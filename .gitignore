@@ -7,5 +7,7 @@ apps/*/dist-server/
 .env.*
 !.env.example
 .ulak-data/
+.ulak-data-backups/
+tmp-*
 *.log
 .DS_Store

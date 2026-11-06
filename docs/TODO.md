@@ -2,6 +2,18 @@
 
 ## Tamamlanan sonuçlar
 
+### 0. Araştırma metodolojisi uyarlaması (kanıt önce, cümle sonra)
+- [x] `pnpm check:engines`: kök `engines.node` aralığının kurulu tüm bağımlılıkların `engines` aralıklarıyla kesişimi doğrulanır; `--matrix` CI matrisini üretir. Node 23/25'in `vitest` tarafından desteklenmediği bu denetimle bulundu ve aralık daraltıldı.
+- [x] `pnpm audit:data`: üç katmanlı veri sızıntısı denetimi (`.gitignore` kuralları, izlenen dosyalar, tüm git geçmişi).
+- [x] `pnpm audit:network`: dış ağ sınırı denetimi; her ağ çağrı noktası ve hedef host sınır tablosuyla eşleştirilir, sınıflandırılmamış hedef CI'da kırmızı olur.
+- [x] `pnpm smoke:startup`: derlenmiş sunucu boş portta gerçekten başlatılır, `/api/health`, `/api/session`, `/api/projects` ve arayüz varlıkları gerçek HTTP ile doğrulanır.
+- [x] `pnpm backup:data`: yıkıcı denemeden önce `.ulak-data/` yedeği; `--list` ve `--prune <n>` desteklenir.
+- [x] `pnpm hooks:install`: `pre-commit` kancası veri hijyeni denetimini zorunlu kılar (üç katmanlı gizlilik korumasının 2. katmanı).
+- [x] CI matrisi elle yazılmaz; `check-engines --matrix` çıktısından türetilir ve gerçek açılış testi çalıştırılır.
+- [x] Node.js 26 LTS'e geçildi (Dockerfile, CI, README ve `engines` aralıkları güncel).
+- [x] Kurallar [docs/VERIFICATION.md](VERIFICATION.md) içinde komutlara bağlandı.
+- [ ] Tarayıcı tarafı doğrulama (DOM + konsol hataları) henüz otomatik değil; Playwright eklendiğinde `pageerror`/`console` toplanmalı.
+
 ### 1. Güvenli statik proje alımı
 - [x] Kullanıcı `.7z`, `.zip`, `.tar`, `.tgz` veya `.tar.gz` arşivi yükleyebilir ya da herkese açık GitHub depo adresi girebilir.
 - [x] Arşiv kodu çalıştırılmadan listelenir; path traversal, sembolik bağlantı, aşırı açılma boyutu, dosya adedi ve metin dosyası sınırları kontrol edilir.

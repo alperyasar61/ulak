@@ -41,7 +41,9 @@ aranarak kök bulunur, böylece sunucu hem `src/` (tsx) hem `dist-server/src/` (
 
 ## Geliştirme
 
-- Node.js 22.13+ ve pnpm gerekir (`node:sqlite` bu sürümden itibaren bayraksız çalışır).
+- Node.js **22.13+, 24.x veya 26.x** ve pnpm gerekir (`node:sqlite` 22.13'ten itibaren bayraksız çalışır).
+  Node 23 ve 25 desteklenmez: `vitest` bu tek major'ları kapsamaz. Kök `package.json` içindeki
+  `engines.node` aralığı bu kümeyi tanımlar ve `pnpm check:engines` ile doğrulanır.
 - `.env.example` dosyasını `.env` olarak kopyalayın; `DATABASE_URL` ile platform AI/storage değişkenlerini kendi ortamınızdan doldurun. Bu değerler yalnızca sunucu tarafında okunur.
 - `pnpm install`
 - `pnpm dev` (Vite arayüzü `:3000`, API `:3001`; `/api` istekleri Vite proxy ile API’ye gider)
@@ -53,9 +55,36 @@ aranarak kök bulunur, böylece sunucu hem `src/` (tsx) hem `dist-server/src/` (
 Tek bir uygulama üzerinde çalışmak için `pnpm --filter @ulak/backend dev` veya
 `pnpm --filter @ulak/frontend dev` kullanılabilir.
 
+### Doğrulama komutları
+
+| Komut | Ne yapar |
+| --- | --- |
+| `pnpm check:engines` | `engines.node` aralığının kurulu tüm bağımlılıkların `engines` aralıklarıyla kesiştiğini doğrular. `--matrix` bayrağı CI matrisini JSON olarak yazdırır. |
+| `pnpm audit:data` | Üç katmanlı veri sızıntısı denetimi: `.gitignore` kuralları, izlenen dosyalar ve tüm git geçmişi. |
+| `pnpm audit:network` | Dış ağ sınırı denetimi: her ağ çağrısı noktasını ve hedef host'u çıkarır, bilinen sınır tablosuyla eşleştirir. Sınıflandırılmamış hedef varsa çıkış 1. |
+| `pnpm smoke:startup` | Derlenmiş sunucuyu boş bir portta gerçekten başlatır, `/api/health`, `/api/session`, `/api/projects` ve arayüz varlıklarını gerçek HTTP ile doğrular, kapatır. |
+| `pnpm verify:tools` | `tools/tools-manifest.json` içindeki SHA-256 özetlerini doğrular. |
+| `pnpm backup:data` | `.ulak-data/` klasörünü `.ulak-data-backups/<zaman damgası>` altına kopyalar. `--list` ve `--prune <n>` destekler. |
+| `pnpm hooks:install` | `core.hooksPath` değerini `.githooks` yapar; `pre-commit` kancası `audit:data` çalıştırır ve bulgu varsa commit'i engeller. |
+| `pnpm verify` | `check:engines` + `audit:data` + `audit:network` + `typecheck` + `test` + `build` + `smoke:startup` zinciri. |
+
+Depoyu ilk kez klonladıktan sonra bir kez `pnpm hooks:install` çalıştırın; gizlilik denetimi
+`.gitignore` (kural), commit öncesi kanca (uygulama) ve CI (uzak doğrulama) olmak üzere üç katmanda
+devrede olur.
+
+Ayrıntılı inceleme ve doğrulama kuralları: [docs/VERIFICATION.md](./docs/VERIFICATION.md).
+
+Yıkıcı bir denemeden (duman testi, toplu silme, şema değişikliği) önce `pnpm backup:data` çalıştırın;
+geri dönüş yolu olmadan veri klasörüne dokunmayın.
+
 ### Test ve güvenlik incelemesi
 
-GitHub Actions, bağımlılıkları kurduktan sonra yüksek önem seviyesindeki bilinen bağımlılık açıklarını denetler; ardından tür denetimi, build ve backend testlerini çalıştırır. Yeni kontroller backend birim testlerine eklenir.
+GitHub Actions iki aşamalı çalışır. `engines` işi bağımlılıkları `--frozen-lockfile` ile kurar,
+`check:engines` ile aralığı doğrular, CI matrisini `check-engines --matrix` çıktısından **türetir**
+(elle yazılmaz), veri hijyeni denetimini ve yüksek önem seviyesindeki bağımlılık açığı taramasını
+çalıştırır. `build-and-test` işi bu matrisin her Node major'ında tür denetimi, build ve backend
+testlerini koşturur; son adım derlenmiş sunucuyu gerçekten başlatıp `/api/health` yanıtını bekler —
+"derlendi" tek başına yeterli sayılmaz. Yeni kontroller backend birim testlerine eklenir.
 
 Yüklenen proje, kabul aşamasında AST/metin tabanlı statik kontrollerden geçer: sır olabilecek dosya/değerler, dinamik çalıştırma, girdi-tehlikeli sink birlikteliği, hassas API yetkilendirme işaretleri, kişisel veri sinyalleri, TLS doğrulamasının kapatılması ve geniş CORS ayarları incelenir. Bu kontroller sezgiseldir; bulgular doğrulanmalı ve “bulgu yok” sonucu güvenlik garantisi sayılmamalıdır. Bağımlılıkların OSV sorgusu mevcut canlı araştırma adımında kalır ve açık kullanıcı onayı gerektirir.
 

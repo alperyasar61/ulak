@@ -8,8 +8,12 @@ on:
     branches: [ master, main ]
 
 jobs:
-  build-and-test:
+  # CI matrisi elle yazılmaz: `engines.node` ile kurulu bağımlılıkların
+  # kesişiminden türetilir. Böylece aralık değiştiğinde matris kendiliğinden uyar.
+  engines:
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
     steps:
       - uses: actions/checkout@v4
 
@@ -25,8 +29,43 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Engines intersection check
+        run: pnpm check:engines
+
+      - name: Derive Node matrix
+        id: matrix
+        run: echo "matrix=$(node scripts/check-engines.mjs --matrix)" >> "$GITHUB_OUTPUT"
+
+      - name: Data hygiene audit
+        run: pnpm audit:data
+
+      - name: Network boundary audit
+        run: pnpm audit:network
+
       - name: Dependency security audit
         run: pnpm audit --audit-level high
+
+  build-and-test:
+    needs: engines
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ${{ fromJSON(needs.engines.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Type check
         run: pnpm typecheck
@@ -36,3 +75,8 @@ jobs:
 
       - name: Unit tests
         run: pnpm test
+
+      # Metodoloji kuralı: "derlendi" yeterli değil, süreç gerçekten ayağa kalkmalı.
+      # Betik boş port bulur, sunucuyu başlatır, gerçek HTTP istekleri atar ve kapatır.
+      - name: Server startup smoke check
+        run: pnpm smoke:startup

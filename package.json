@@ -5,7 +5,7 @@
   "type": "module",
   "packageManager": "pnpm@10.13.1",
   "engines": {
-    "node": ">=22.13"
+    "node": ">=22.13 <23 || >=24 <25 || >=26"
   },
   "scripts": {
     "dev": "concurrently -k -n api,web -c cyan,magenta \"pnpm --filter @ulak/backend dev\" \"pnpm --filter @ulak/frontend dev\"",
@@ -14,9 +14,17 @@
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm --filter @ulak/backend test",
     "verify:tools": "node scripts/verify-tools.mjs",
-    "manifest:tools": "node scripts/generate-tools-manifest.mjs"
+    "manifest:tools": "node scripts/generate-tools-manifest.mjs",
+    "check:engines": "node scripts/check-engines.mjs",
+    "audit:data": "node scripts/audit-data-hygiene.mjs",
+    "audit:network": "node scripts/audit-network.mjs --strict",
+    "smoke:startup": "node scripts/smoke-startup.mjs",
+    "backup:data": "node scripts/backup-data.mjs",
+    "hooks:install": "node scripts/install-hooks.mjs",
+    "verify": "pnpm check:engines && pnpm audit:data && pnpm audit:network && pnpm typecheck && pnpm test && pnpm build && pnpm smoke:startup"
   },
   "devDependencies": {
-    "concurrently": "9.2.1"
+    "concurrently": "9.2.1",
+    "semver": "^7.8.6"
   }
 }

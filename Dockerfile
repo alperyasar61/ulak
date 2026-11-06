@@ -1,5 +1,6 @@
-# ULAK üretim imajı — yerel depolama + SQLite varsayılanı için Node 22+ gerekir.
-FROM node:22-bookworm-slim
+# ULAK üretim imajı — yerel depolama + SQLite varsayılanı için Node 22.13+ gerekir.
+# Node 26 = güncel LTS (Lithium); kök package.json `engines` aralığıyla uyumludur.
+FROM node:26-bookworm-slim
 
 WORKDIR /app
 

@@ -1,0 +1,9 @@
+#!/bin/sh
+# Otomatik üretildi: node scripts/install-hooks.mjs
+# Veri sızıntısı denetimi başarısızsa commit engellenir.
+node scripts/audit-data-hygiene.mjs || {
+  echo ""
+  echo "Commit engellendi: veri hijyeni denetimi başarısız."
+  echo "Bilerek geçmek için: git commit --no-verify"
+  exit 1
+}
