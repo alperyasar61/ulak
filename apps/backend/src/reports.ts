@@ -63,6 +63,64 @@ export function renderDossier(input: DossierInput) {
   push(`### Teknoloji yığını`, "");
   push(...table(["Teknoloji", "Güven"], (report.stack ?? []).map((item) => [item.name, item.confidence === "high" ? "doğrudan" : "tahmin"])));
 
+  if (report.license) {
+    push(`### Lisans sınıflandırması`, "");
+    push(`Lisans, README iddiasından değil **LICENSE dosyasının içeriğinden** okunur.`, "");
+    push(...table(["Alan", "Değer"], [
+      ["Sınıf", `${report.license.class} — ${report.license.reason}`],
+      ["Tespit edilen lisans", report.license.detected ?? "tanınmadı"],
+      ["Lisans dosyası", report.license.file ? `\`${report.license.file}\`` : "yok"],
+      ["README iddiası", report.license.readmeClaim ? `${report.license.readmeClaim} (${report.license.readmeClaimClass})` : "yok"],
+      ["Çelişki", report.license.mismatch ? "**var** — README ile LICENSE uyuşmuyor" : "yok"],
+    ]));
+    if (report.license.evidence?.length) push(`Kanıt satırları:`, ...report.license.evidence.map((line) => `- \`${line}\``), "");
+  }
+
+  if (report.symbols) {
+    push(`### Sembol envanteri`, "");
+    push(`Toplam **${report.symbols.total}** sembol, ${report.symbols.files.length} dosyada. Sembol listesi algoritmanın özetidir; iyi adlandırılmış bir kod tabanında gövdeyi okumadan niyeti gösterir.`, "");
+    push(...table(["Dosya", "Sembol", "Boyut"], report.symbols.hotspots.map((entry) => [`\`${entry.file}\``, String(entry.count), `${(entry.bytes / 1024).toFixed(1)} KB`])));
+    for (const entry of report.symbols.files.slice(0, 8)) {
+      push(`#### \`${entry.file}\` — ${entry.count} sembol`, "", entry.symbols.map((symbol) => `\`${symbol.name}\` (${symbol.kind}${symbol.exported ? "" : ", iç"}):${symbol.line}`).join(" · "), "");
+    }
+  }
+
+  if (report.tests) {
+    push(`### Test envanteri`, "");
+    push(...table(["Ölçüm", "Değer"], [
+      ["Test dosyası", String(report.tests.count)],
+      ["Çerçeve", report.tests.frameworks.length ? report.tests.frameworks.join(", ") : "tespit edilemedi"],
+      ["Aranan örüntüler", report.tests.searchedPatterns.join(" · ")],
+    ]));
+    if (report.tests.files.length) push(...report.tests.files.slice(0, 20).map((file) => `- \`${file}\``), "");
+  }
+
+  if (report.sizeHotspots || report.wrapper) {
+    push(`### Boyut ve sarmalayıcı`, "");
+    if (report.sizeHotspots) {
+      push(...(report.sizeHotspots.length
+        ? [`Eşik üstü büyük dosyalar (gömülü ikili dosyalar boyutu yanıltıcı kılar):`, "", ...table(["Dosya", "Boyut"], report.sizeHotspots.map((item) => [`\`${item.path}\``, `${(item.bytes / 1024 / 1024).toFixed(1)} MB`]))]
+        : ["_Eşik üstü büyük dosya yok._", ""]));
+    }
+    if (report.wrapper) {
+      push(report.wrapper.doubleNested
+        ? `**Sarmalayıcı uyarısı:** tüm öğeler \`${report.wrapper.root}/\` altında ve bu klasör ${report.wrapper.depth} kez tekrarlanıyor. Çift iç içe ZIP açılmış olabilir; yollar buna göre yorumlanmalı.`
+        : report.wrapper.root ? `Tüm öğeler tek bir \`${report.wrapper.root}/\` klasörü altında.` : "Ortak bir sarmalayıcı klasör yok.", "");
+    }
+  }
+
+  if (report.manifestNotes?.length) {
+    push(`### Manifest gerekçeleri`, "");
+    push(`Bağımlılık dosyalarındaki yorumlar, bir paketin neden eklendiğini veya dışlandığını açıklar; 200 satırlık listeden daha değerlidir.`, "");
+    push(...report.manifestNotes.map((note) => `- \`${note.file}:${note.line}\` — ${note.text}`), "");
+  }
+
+  if (report.absenceEvidence?.length) {
+    push(`### Yokluk kanıtları`, "");
+    push(`"Yok" demek de kanıt ister: her olumsuz bulgu hangi aramaların yapıldığını taşır.`, "");
+    push(...table(["Bulgu", "İddia", "Yapılan aramalar"], report.absenceEvidence.map((item) => [item.id, item.claim, item.searches.join(" · ")])));
+  }
+
   push(`## 3. Proje haritası`, "");
   push(`### Klasör dağılımı`, "");
   push(...table(["Klasör", "Dosya"], (report.modules ?? []).map((module) => [`\`${module.name}/\``, String(module.files)])));

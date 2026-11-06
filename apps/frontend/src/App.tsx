@@ -1163,7 +1163,161 @@ function Architecture({ project }: { project: Project }) {
           </div>
         ) : <p className="muted-text">Desteklenen manifest dosyalarında bağımlılık kaydı bulunamadı.</p>}
       </section>
+      <InspectionLayers report={report} />
     </div>
+  );
+}
+
+const LICENSE_CLASS_LABEL: Record<string, string> = {
+  A: "Kısıt yok",
+  B: "Copyleft — yalnızca alt süreç",
+  C: "Ticari kısıtlı",
+  D: "Atıf zorunlu",
+  E: "Doğrulanamadı",
+};
+
+/**
+ * §4 okuma katmanlarının arayüz karşılığı: lisans, sembol, test, boyut ve
+ * yokluk kanıtı. Her blok ölçüm gösterir; yorumu kullanıcı yapar.
+ */
+function InspectionLayers({ report }: { report: Project["localReport"] }) {
+  const license = report.license;
+  const symbols = report.symbols;
+  const tests = report.tests;
+  const hotspots = report.sizeHotspots ?? [];
+  const wrapper = report.wrapper;
+  const notes = report.manifestNotes ?? [];
+  const absence = report.absenceEvidence ?? [];
+  const hasAny = Boolean(license || symbols || tests || hotspots.length || wrapper?.root || notes.length || absence.length);
+  if (!hasAny) return null;
+
+  return (
+    <section className="panel inspection-panel">
+      <div className="panel-heading">
+        <div>
+          <span className="panel-overline">OKUMA KATMANLARI</span>
+          <h2>Lisans, sembol, test ve kanıt</h2>
+        </div>
+        <span className="subtle-chip">6 katman</span>
+      </div>
+
+      {license ? (
+        <div className="inspection-block">
+          <div className="inspection-head">
+            <span>LİSANS</span>
+            <span className={"license-badge license-" + license.class}>{license.class} · {LICENSE_CLASS_LABEL[license.class]}</span>
+          </div>
+          <p className="muted-text">
+            {license.detected ? <><strong>{license.detected}</strong> — {license.reason}</> : license.reason}
+            {license.file ? <> · kaynak: <code>{license.file}</code></> : null}
+          </p>
+          {license.mismatch ? (
+            <div className="inspection-warning">
+              <TriangleAlert size={14} />
+              <span>README “{license.readmeClaim}” diyor, LICENSE dosyası “{license.detected}” içeriyor. Yeniden kullanım kararı LICENSE dosyasına göre verilmelidir.</span>
+            </div>
+          ) : null}
+          {license.evidence.length ? (
+            <ul className="inspection-evidence">
+              {license.evidence.map((line, index) => <li key={index}><code>{line}</code></li>)}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
+
+      {symbols ? (
+        <div className="inspection-block">
+          <div className="inspection-head">
+            <span>SEMBOL ENVANTERİ</span>
+            <span className="subtle-chip">{symbols.total} sembol · {symbols.files.length} dosya</span>
+          </div>
+          <p className="muted-text">Sembol listesi algoritmanın özetidir; gövdeyi okumadan niyeti gösterir. En büyük dosya genelde projenin asıl fikridir.</p>
+          {symbols.hotspots.length ? (
+            <div className="symbol-list">
+              {symbols.hotspots.map((entry) => (
+                <div key={entry.file} className="symbol-row">
+                  <code>{entry.file}</code>
+                  <span>{entry.count} sembol</span>
+                  <span>{formatBytes(entry.bytes)}</span>
+                </div>
+              ))}
+            </div>
+          ) : <p className="muted-text">Desteklenen dilde sembol çıkarılamadı.</p>}
+        </div>
+      ) : null}
+
+      {tests ? (
+        <div className="inspection-block">
+          <div className="inspection-head">
+            <span>TEST ENVANTERİ</span>
+            <span className="subtle-chip">{tests.count} test dosyası</span>
+          </div>
+          <p className="muted-text">
+            {tests.count ? <>Çerçeve: {tests.frameworks.length ? tests.frameworks.join(", ") : "tespit edilemedi"}.</> : "Altı adlandırma örüntüsü ve test klasörü kuralı tarandı, eşleşme yok."}
+          </p>
+          {tests.files.length ? (
+            <ul className="inspection-evidence">
+              {tests.files.slice(0, 8).map((file) => <li key={file}><code>{file}</code></li>)}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
+
+      {hotspots.length || wrapper?.root ? (
+        <div className="inspection-block">
+          <div className="inspection-head">
+            <span>BOYUT VE SARMALAYICI</span>
+            {wrapper?.doubleNested ? <span className="license-badge license-C">çift iç içe</span> : null}
+          </div>
+          {wrapper?.root ? (
+            <p className="muted-text">
+              Tüm öğeler <code>{wrapper.root}/</code> altında{wrapper.doubleNested ? ` ve bu klasör ${wrapper.depth} kez tekrarlanıyor — çift iç içe ZIP açılmış olabilir.` : "."}
+            </p>
+          ) : null}
+          {hotspots.length ? (
+            <div className="symbol-list">
+              {hotspots.map((item) => (
+                <div key={item.path} className="symbol-row">
+                  <code>{item.path}</code>
+                  <span>{formatBytes(item.bytes)}</span>
+                </div>
+              ))}
+            </div>
+          ) : <p className="muted-text">Eşik üstü büyük dosya yok; boyut dağılımı normal.</p>}
+        </div>
+      ) : null}
+
+      {notes.length ? (
+        <div className="inspection-block">
+          <div className="inspection-head">
+            <span>MANİFEST GEREKÇELERİ</span>
+            <span className="subtle-chip">{notes.length} not</span>
+          </div>
+          <p className="muted-text">Bir paketin neden dışlandığını açıklayan yorum, 200 satırlık bağımlılık listesinden daha değerlidir.</p>
+          <ul className="inspection-evidence">
+            {notes.map((note) => <li key={note.file + note.line}><code>{note.file}:{note.line}</code> — {note.text}</li>)}
+          </ul>
+        </div>
+      ) : null}
+
+      {absence.length ? (
+        <div className="inspection-block">
+          <div className="inspection-head">
+            <span>YOKLUK KANITLARI</span>
+            <span className="subtle-chip">{absence.length} iddia</span>
+          </div>
+          <p className="muted-text">“Yok” demek de kanıt ister: her olumsuz bulgu hangi aramaların yapıldığını taşır.</p>
+          <div className="symbol-list">
+            {absence.map((item) => (
+              <div key={item.id} className="absence-row">
+                <strong>{item.claim}</strong>
+                <span>{item.searches.join(" · ")}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </section>
   );
 }
 

@@ -92,6 +92,13 @@ function projectScreenData(project: Project, screen: ProjectScreen, messages: Ch
         apiSurface: report.apiSurface,
         dependencies: report.dependencies,
         sbom: report.sbom,
+        license: report.license ?? null,
+        symbols: report.symbols ?? null,
+        tests: report.tests ?? null,
+        sizeHotspots: report.sizeHotspots ?? [],
+        wrapper: report.wrapper ?? null,
+        manifestNotes: report.manifestNotes ?? [],
+        absenceEvidence: report.absenceEvidence ?? [],
       };
     case "findings":
       return {

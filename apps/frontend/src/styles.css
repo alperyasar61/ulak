@@ -315,6 +315,30 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .dependency-row { border-top: 1px solid #f0efe8; color: #768981; font-size: 11.5px; }
 .dependency-row strong { color: #47655b; font-weight: 650; overflow-wrap: anywhere; }
 .dependency-row code { color: #8b978d; font-size: 11px; overflow-wrap: anywhere; }
+.inspection-panel { margin-top: 13px; }
+.inspection-block { border-top: 1px solid #f0efe8; padding: 13px 0 3px; }
+.inspection-block:first-of-type { border-top: 0; padding-top: 0; }
+.inspection-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: #8c9a8f; font-size: 11px; font-weight: 750; letter-spacing: .1em; margin-bottom: 7px; }
+.inspection-block > .muted-text { margin: 0 0 8px; }
+.inspection-block code { color: #506d63; font-size: 11.5px; overflow-wrap: anywhere; }
+.license-badge { display: inline-flex; align-items: center; border-radius: 20px; padding: 3px 9px; font-size: 11px; font-weight: 700; letter-spacing: .02em; border: 1px solid transparent; }
+.license-A { color: #3f7a5f; background: #eef6ef; border-color: #d9e9dc; }
+.license-B { color: #7a6a3f; background: #f8f4e8; border-color: #ece2c9; }
+.license-C { color: #a05a4c; background: #fbeeea; border-color: #f0d8d1; }
+.license-D { color: #4f6f8a; background: #eef3f8; border-color: #d9e4ee; }
+.license-E { color: #8a8a8a; background: #f4f4f1; border-color: #e6e6e0; }
+.inspection-warning { display: flex; align-items: flex-start; gap: 7px; background: #fdf6ec; border: 1px solid #f0e2c9; border-radius: 8px; padding: 8px 10px; color: #8a6a3c; font-size: 11.5px; line-height: 1.6; margin-bottom: 8px; }
+.inspection-warning svg { flex: none; margin-top: 2px; }
+.inspection-evidence { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.inspection-evidence li { color: #7d8b83; font-size: 11.5px; line-height: 1.55; overflow-wrap: anywhere; }
+.symbol-list { display: flex; flex-direction: column; border: 1px solid #eeeee7; border-radius: 7px; overflow: hidden; }
+.symbol-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 7px 10px; border-top: 1px solid #f0efe8; color: #768981; font-size: 11.5px; }
+.symbol-row:first-child { border-top: 0; }
+.symbol-row code { color: #47655b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.absence-row { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 10px; align-items: baseline; padding: 7px 10px; border-top: 1px solid #f0efe8; font-size: 11.5px; }
+.absence-row:first-child { border-top: 0; }
+.absence-row strong { color: #47655b; font-weight: 650; }
+.absence-row span { color: #8b978d; overflow-wrap: anywhere; }
 
 .roadmap-list { display: flex; flex-direction: column; gap: 10px; }
 .roadmap-card { display: grid; grid-template-columns: 46px minmax(0,1fr) 142px; gap: 14px; background: #fffefa; border: 1px solid #e8e7df; border-radius: 11px; padding: 15px; }

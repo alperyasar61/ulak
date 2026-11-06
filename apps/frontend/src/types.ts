@@ -4,6 +4,26 @@ export interface SbomComponent { name: string; version: string; ecosystem: Depen
 export interface ApiSurface { method: string; path: string; file: string; authLikely: boolean; }
 export interface PrivacySignal { category: string; file: string; evidence: string; }
 export interface LocalFinding { id: string; area: string; severity: "high" | "medium" | "low"; title: string; detail: string; evidence: string[]; confidence: "medium" | "low"; }
+export type LicenseClass = "A" | "B" | "C" | "D" | "E";
+export interface LicenseInfo {
+  detected: string | null;
+  class: LicenseClass;
+  file: string | null;
+  evidence: string[];
+  readmeClaim: string | null;
+  readmeClaimClass: LicenseClass | null;
+  mismatch: boolean;
+  reason: string;
+}
+export type SymbolKind = "function" | "class" | "method" | "type" | "constant";
+export interface SymbolEntry { file: string; name: string; kind: SymbolKind; line: number; exported: boolean; }
+export interface SymbolFile { file: string; bytes: number; count: number; symbols: SymbolEntry[]; }
+export interface SymbolInventory { total: number; files: SymbolFile[]; hotspots: SymbolFile[]; }
+export interface TestInventory { count: number; files: string[]; frameworks: string[]; searchedPatterns: string[]; }
+export interface SizeHotspot { path: string; bytes: number; }
+export interface WrapperInfo { root: string | null; doubleNested: boolean; depth: number; }
+export interface ManifestNote { file: string; line: number; text: string; }
+export interface AbsenceEvidence { id: string; claim: string; searches: string[]; }
 export interface SecurityLearningNote {
   id: string;
   title: string;
@@ -29,6 +49,13 @@ export interface LocalReport {
   apiSurface: ApiSurface[];
   privacySignals: PrivacySignal[];
   findings: LocalFinding[];
+  license?: LicenseInfo;
+  symbols?: SymbolInventory;
+  tests?: TestInventory;
+  sizeHotspots?: SizeHotspot[];
+  wrapper?: WrapperInfo;
+  manifestNotes?: ManifestNote[];
+  absenceEvidence?: AbsenceEvidence[];
   learningNotes?: SecurityLearningNote[];
   secretFileCount: number;
   analyzedAt: string;

@@ -22,7 +22,7 @@ Backend ve frontend ayrı uygulamalardır; kök dizin yalnızca orkestrasyon yap
 ulak/
 ├── apps/
 │   ├── backend/          @ulak/backend  — Express API + KodMercek
-│   │   ├── src/          archive, db, env, index, llm, paths, proactive, reports, research, security, storage
+│   │   ├── src/          archive, db, env, index, inspect, license, llm, paths, proactive, reports, research, security, storage
 │   │   ├── modules/      KodMercek (gömülü işleyiş tetkiki motoru)
 │   │   └── dist-server/  build çıktısı
 │   └── frontend/         @ulak/frontend — React + Vite arayüzü
@@ -91,6 +91,21 @@ Yüklenen proje, kabul aşamasında AST/metin tabanlı statik kontrollerden geç
 Arşivdeki uygulama kodu veya testleri **çalıştırılmaz**; yükleme aşamasında aktif saldırı/pentest yapılmaz. Bu tercih, güvenilmeyen projelerin ULAK sunucusunda kod çalıştırmasını önler. Gerçek dinamik testler yalnızca açık yetkiyle, uygulamanın sahibinin kontrolündeki ayrı ve izole bir test ortamında yürütülmelidir.
 
 Kullanıcı onayı olmadan yeni serbest biçimli öğrenme notu eklenmez. Açıkça onaylanan genel notlar ile ULAK’ın önceden tanımlı bulgu kimlikleri/tarama sayaçları yapılandırılmış veritabanında saklanır (varsayılan SQLite veya `DATABASE_URL` ile seçilen MySQL). Proje adı, kaynak, dosya yolu, kanıt ve sır notun parçası olarak kaydedilmez; olası özel içerikler doğrulamada reddedilir. `DATABASE_URL` uzak bir veritabanını gösteriyorsa notlar o veritabanında saklanır. Notlar tarama kurallarını otomatik değiştirmez; **Bulgular** sekmesinden silinebilir.
+
+### İnceleme katmanları (lisans, sembol, test, kanıt)
+
+Arşiv kabul edildiğinde altı okuma katmanı ölçüm üretir; her ölçüm **Mimari** sekmesindeki “Okuma katmanları” panelinde ve Markdown dökümünde görünür. Katmanlar yorum değil kanıt üretir:
+
+| Katman | Ne ölçülür | Nerede |
+| --- | --- | --- |
+| Lisans sınıflandırması | `LICENSE`/`COPYING` metni A–E sınıfına ayrılır (A kısıt yok, B copyleft, C ticari kısıtlı, D atıf zorunlu, E doğrulanamadı). README iddiası ile LICENSE metni çelişirse ayrı bulgu üretilir. | `apps/backend/src/license.ts` |
+| Sembol envanteri | TypeScript derleyici API’si ve girinti duyarlı Python taraması ile fonksiyon/sınıf/metot/tip/sabit listesi; dosya başına sayı ve bayt. | `apps/backend/src/inspect.ts` |
+| Test envanteri | Altı dosya adlandırma örüntüsü ve test klasörü kuralı taranır; çerçeve imzaları ve **aranan örüntüler** kanıt olarak saklanır. | `apps/backend/src/inspect.ts` |
+| Boyut ve sarmalayıcı | 20 MB üstü dosyalar sıralanır; tüm öğelerin tek kök klasör altında ve bu klasörün yinelenerek gelmesi çift iç içe ZIP işareti sayılır. | `apps/backend/src/inspect.ts` |
+| Manifest gerekçeleri | Bağımlılık dosyalarındaki “neden” yorumları (pin, çakışma, hariç tutma) satır numarasıyla çıkarılır. | `apps/backend/src/inspect.ts` |
+| Yokluk kanıtları | “README yok”, “test yok”, “lisans yok” gibi olumsuz bulgular hangi aramaların yapıldığını taşır. | `apps/backend/src/inspect.ts` |
+
+Lisans sınıfı A olan projeler için lisans bulgusu üretilmez; gürültü gerçek riski gizler. Sınıf C ve E, proaktif denetimde yüksek önem derecesiyle raporlanır. Yeni alanlar `LocalReport` içinde isteğe bağlıdır, böylece bu katmanlar eklenmeden önce kaydedilmiş projeler bozulmadan açılır.
 
 ### API / webservis çalışma alanları
 

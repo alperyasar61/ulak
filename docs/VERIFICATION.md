@@ -35,6 +35,32 @@ Sembol araması → `usages` → glob (`**/*.ts`) → grep (mutlaka dosya glob'u
 numarasını bul, sonra `view_range` ile yalnızca o aralığı oku. Değişiklikte `edit` kullan; `create` ile
 üzerine yazmak veri kaybı riskidir.
 
+## 3.1 Ürünün kendi okuma katmanları
+
+Bu metodolojinin ölçülebilir kısmı ULAK'ın içine gömülüdür; inceleme yapan kişi kadar ürün de aynı
+sırayı izler. Her katman ayrı modülde, ayrı test dosyasıyla doğrulanır.
+
+| Katman | Modül | Test | Ürettiği alan |
+| --- | --- | --- | --- |
+| Lisans sınıflandırması | `apps/backend/src/license.ts` | `license.test.ts` | `report.license` |
+| Sembol envanteri | `apps/backend/src/inspect.ts` | `inspect.test.ts` | `report.symbols` |
+| Test envanteri | `apps/backend/src/inspect.ts` | `inspect.test.ts` | `report.tests` |
+| Boyut / sarmalayıcı | `apps/backend/src/inspect.ts` | `inspect.test.ts` | `report.sizeHotspots`, `report.wrapper` |
+| Manifest gerekçeleri | `apps/backend/src/inspect.ts` | `inspect.test.ts` | `report.manifestNotes` |
+| Yokluk kanıtları | `apps/backend/src/inspect.ts` | `inspect.test.ts` | `report.absenceEvidence` |
+
+Kurallar:
+
+- **Lisans kuralı sırası bağlayıcıdır.** LGPL metni “GNU General Public License” içerdiği için LGPL,
+  GPL'den önce sınanır; kısıtlayıcı (C) kuralları en başta gelir. Sıra bozulursa sınıflandırma yanlış olur.
+- **Sınıf A bulgu üretmez.** Kısıt yoksa sessiz kalmak doğrudur; gürültü gerçek riski gizler.
+- **Python sembolleri regex ile çıkarılır**, AST ile değil: Node'da `ast` modülü yok. Girinti düzeyi
+  `function` ile `method` ayrımını, `_` öneki `exported: false` işaretini verir.
+- **Yokluk iddiası arama listesi taşır.** “Test yok” diyen kayıt, hangi altı örüntünün tarandığını
+  `searchedPatterns` alanında gösterir.
+- **Yeni alanlar isteğe bağlıdır.** `LocalReport` alanları `?` ile tanımlıdır; MySQL'de duran eski
+  `local_report_json` kayıtları bu katmanlar eklenmeden önce yazıldığı için bozulmadan açılmalıdır.
+
 ## 4. Değişiklikten önce geri dönüş yolu
 
 ```powershell

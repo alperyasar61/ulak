@@ -50,12 +50,16 @@ export function buildProactiveAudit(input: {
   dependencies: Dependency[];
   secretFileCount: number;
   hasDynamicExecution: boolean;
+  /** §4.2 — LICENSE dosyasından sınıflandırılmış lisans; verilmezse yalnızca dosya varlığına bakılır. */
+  license?: { class: "A" | "B" | "C" | "D" | "E"; detected: string | null; mismatch: boolean; readmeClaim?: string | null };
+  /** §4.6 — gerçek test dosyası sayımı; boolean "test var mı" sorusunun yerini alır. */
+  testCount?: number;
 }): ProactiveAudit {
   const names = input.archiveNames.map((name) => name.replace(/\\/g, "/"));
   const lowerNames = names.map((name) => name.toLowerCase());
   const hasManifest = hasName(lowerNames, /(^|\/)(package\.json|pyproject\.toml|requirements(?:-[^/]+)?\.txt|cargo\.toml|go\.mod|composer\.json)$/);
   const hasLock = hasName(lowerNames, /(^|\/)(package-lock\.json|pnpm-lock\.yaml|yarn\.lock|poetry\.lock|pipfile\.lock|cargo\.lock|go\.sum|composer\.lock)$/);
-  const hasTests = hasName(lowerNames, /(^|\/)(__tests__|tests?|specs?)(\/|\.)/) || hasName(lowerNames, /(^|\/)(vitest|jest|pytest|tox|go\.test)\.[^/]+$/);
+  const hasTests = input.testCount !== undefined ? input.testCount > 0 : hasName(lowerNames, /(^|\/)(__tests__|tests?|specs?)(\/|\.)/) || hasName(lowerNames, /(^|\/)(vitest|jest|pytest|tox|go\.test)\.[^/]+$/);
   const hasCi = hasName(lowerNames, /(^|\/)(\.github\/workflows|\.gitlab-ci\.yml|jenkinsfile|azure-pipelines\.yml|circleci\/config\.yml)(\/|$)/);
   const hasSecurityDocs = hasName(lowerNames, /(^|\/)(security\.md|\.github\/security\.md|codeowners)$/);
   const hasLicense = hasName(lowerNames, /(^|\/)(license|license\.md|license\.txt|copying)(\.|$)/);
@@ -84,7 +88,7 @@ export function buildProactiveAudit(input: {
     {
       id: "test-ci", category: "Kalite", title: "Test ve sürekli entegrasyon izi",
       status: checkStatus(hasTests && hasCi, hasTests || hasCi), severity: hasTests && hasCi ? "low" : "medium",
-      summary: hasTests && hasCi ? "Test yapısı ve CI yapılandırması birlikte görünüyor." : hasTests ? "Test izi var; CI yapılandırması ayrıca doğrulanmalı." : hasCi ? "CI izi var; test kapsamı arşivden doğrulanamadı." : "Belirgin test veya CI izi bulunamadı.",
+      summary: hasTests && hasCi ? `Test yapısı (${input.testCount ?? "?"} dosya) ve CI yapılandırması birlikte görünüyor.` : hasTests ? `Test dosyası sayısı ${input.testCount ?? "?"}; CI yapılandırması ayrıca doğrulanmalı.` : hasCi ? "CI izi var; test kapsamı arşivden doğrulanamadı." : "Belirgin test veya CI izi bulunamadı.",
       why: "Proaktif denetimin tekrar edilebilir olması ve güvenli değişiklik yapılması için otomatik test sinyali gerekir.",
       evidence: [...(hasTests ? lowerNames.filter((name) => /(test|spec|pytest|vitest|jest)/.test(name)).slice(0, 3) : []), ...(hasCi ? lowerNames.filter((name) => /\.github\/workflows|gitlab-ci|jenkinsfile|circleci/.test(name)).slice(0, 2) : [])],
       nextStep: hasTests && hasCi ? "Kritik yolları ve güvenlik kontrollerini CI’da zorunlu tutun." : "En az bir hızlı test komutu ve CI workflow’u ekleyin; içerik çalıştırılmadan yalnızca varlığı işaretlendi.",
@@ -128,11 +132,25 @@ export function buildProactiveAudit(input: {
     },
     {
       id: "governance", category: "Yönetişim", title: "Güvenlik politikası ve lisans",
-      status: checkStatus(hasSecurityDocs && hasLicense, hasSecurityDocs || hasLicense), severity: hasSecurityDocs && hasLicense ? "low" : "medium",
-      summary: hasSecurityDocs && hasLicense ? "Güvenlik yönetişimi ve lisans işareti bulundu." : "Güvenlik politikası veya lisans eksik/tespit edilemedi.",
-      why: "Sorumlu bildirim, kullanım koşulları ve bakım sahipliği belirsizliği operasyonel riski artırır.",
-      evidence: [...(hasSecurityDocs ? lowerNames.filter((name) => /security\.md|codeowners/.test(name)).slice(0, 2) : []), ...(hasLicense ? lowerNames.filter((name) => /license|copying/.test(name)).slice(0, 2) : [])],
-      nextStep: hasSecurityDocs && hasLicense ? "Sorumluları ve güvenlik iletişim kanalını güncel tutun." : "SECURITY.md, CODEOWNERS ve uygun bir LICENSE ekleyin.",
+      status: checkStatus(hasSecurityDocs && hasLicense && (input.license?.class === "A" || input.license?.class === "D"), hasSecurityDocs || hasLicense), severity: hasSecurityDocs && hasLicense && (input.license?.class === "A" || input.license?.class === "D") ? "low" : input.license?.class === "C" || input.license?.class === "E" ? "high" : "medium",
+      summary: !hasLicense
+        ? "Lisans dosyası bulunamadı; yeniden kullanım koşulları doğrulanamadı."
+        : input.license?.mismatch
+          ? `README ile LICENSE çelişiyor: README "${input.license.readmeClaim ?? "?"}" diyor, LICENSE içeriği ${input.license.detected ?? "tanınmadı"} (sınıf ${input.license.class}).`
+          : input.license
+            ? `Lisans: ${input.license.detected ?? "tanınmadı"} (sınıf ${input.license.class}).${hasSecurityDocs ? " Güvenlik politikası da bulundu." : " Güvenlik politikası eksik."}`
+            : hasSecurityDocs ? "Güvenlik politikası ve lisans dosyası bulundu." : "Güvenlik politikası eksik.",
+      why: "Sorumlu bildirim, kullanım koşulları ve bakım sahipliği belirsizliği operasyonel riski artırır. Lisans sınıfı, kodun yeniden kullanılıp kullanılamayacağını belirler.",
+      evidence: [...(hasSecurityDocs ? lowerNames.filter((name) => /security\.md|codeowners/.test(name)).slice(0, 2) : []), ...(hasLicense ? lowerNames.filter((name) => /license|copying/.test(name)).slice(0, 2) : []), ...(input.license?.detected ? [`LICENSE içeriği → ${input.license.detected} (${input.license.class})`] : [])],
+      nextStep: !hasLicense
+        ? "LICENSE dosyası ekleyin; lisans yoksa kod varsayılan olarak tüm hakları saklıdır."
+        : input.license?.class === "B"
+          ? "Copyleft kodu yalnızca ayrı süreç olarak çağırın; kendi kodunuza bağlamayın."
+          : input.license?.class === "C"
+            ? "Ticari kısıtları okuyun; bu kodu varsayılan bileşen yapmayın."
+            : input.license?.class === "E"
+              ? "Lisans metnini hukuki incelemeden geçirin; doğrulanana kadar kodu yeniden kullanmayın."
+              : "SECURITY.md, CODEOWNERS ve lisans atıf metnini güncel tutun.",
       basis: "OpenSSF Scorecard — Security Policy / Licence",
     },
     {

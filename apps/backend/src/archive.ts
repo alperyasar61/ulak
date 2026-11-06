@@ -5,6 +5,22 @@ import { createRequire } from "node:module";
 import type { DependencyRef } from "./research.js";
 import { buildProactiveAudit, type ProactiveAudit } from "./proactive.js";
 import { analyzePhase2, type ApiSurface, type PrivacySignal } from "./phase2.js";
+import { classifyLicense, licenseFinding, type LicenseInfo } from "./license.js";
+import {
+  buildAbsenceEvidence,
+  countTests,
+  detectWrapper,
+  extractManifestNotes,
+  extractSymbols,
+  findSizeHotspots,
+  formatBytes,
+  type AbsenceEvidence,
+  type ManifestNote,
+  type SizeHotspot,
+  type SymbolInventory,
+  type TestInventory,
+  type WrapperInfo,
+} from "./inspect.js";
 
 const require = createRequire(import.meta.url);
 const seven = require("7zip-min") as {
@@ -40,6 +56,20 @@ export interface LocalReport {
   apiSurface: ApiSurface[];
   privacySignals: PrivacySignal[];
   findings: LocalFinding[];
+  /** §4.2 — LICENSE dosyasının içeriğinden sınıflandırılmış lisans. Eski kayıtlarda bulunmaz. */
+  license?: LicenseInfo;
+  /** §4.4 — dosya başına çıkarılmış sembol listesi. */
+  symbols?: SymbolInventory;
+  /** §4.6 — test dosyası sayımı ve aranan örüntüler. */
+  tests?: TestInventory;
+  /** §4.3 / tuzak #10 — eşik üstü büyük dosyalar. */
+  sizeHotspots?: SizeHotspot[];
+  /** Tuzak #1 — sarmalayıcı klasör ve çift iç içe ZIP. */
+  wrapper?: WrapperInfo;
+  /** §4.1 — manifest yorumlarındaki gerekçeler. */
+  manifestNotes?: ManifestNote[];
+  /** §5 — olumsuz bulguların dayandığı aramalar. */
+  absenceEvidence?: AbsenceEvidence[];
   learningNotes?: Array<{ id: string; title: string; recommendation: string; scansSeen: number }>;
   secretFileCount: number;
   analyzedAt: string;
@@ -271,7 +301,7 @@ function collectRelationships(files: Array<{ path: string; content: string }>) {
   return edges;
 }
 
-function findStaticSignals(files: Array<{ path: string; content: string }>, archiveNames: string[]): LocalFinding[] {
+function findStaticSignals(files: Array<{ path: string; content: string }>, archiveNames: string[], tests: TestInventory, license: LicenseInfo): LocalFinding[] {
   const findings: LocalFinding[] = [];
   const secretFiles = archiveNames.filter((name) => SECRET_FILENAMES.has(path.posix.basename(name).toLowerCase()) || path.posix.basename(name).toLowerCase().startsWith(".env"));
   if (secretFiles.length) findings.push({ id: "secret-files", area: "Güvenlik", severity: "high", title: "Arşivde sır içerebilecek dosyalar bulundu", detail: "Bu dosyalar AI bağlamına alınmadı. İçerikleri dışarı çıkarılmadan ayrıca kontrol edilmeli; gerekirse anahtarlar döndürülmeli.", evidence: secretFiles.slice(0, 5).map((name) => `${name} (içerik okunmadı)`), confidence: "medium" });
@@ -294,8 +324,9 @@ function findStaticSignals(files: Array<{ path: string; content: string }>, arch
 
   const allNames = archiveNames.map((name) => path.posix.basename(name).toLowerCase());
   if (!allNames.some((name) => name.startsWith("readme"))) findings.push({ id: "missing-readme", area: "Dokümantasyon", severity: "low", title: "README dosyası görünmüyor", detail: "Kurulum, amaç ve temel çalışma akışını açıklayan bir README yeni katkı sağlayanların projeyi anlamasını kolaylaştırır.", evidence: [], confidence: "medium" });
-  if (!archiveNames.some((name) => /(^|\/)(tests?|specs?)(\/|\.)/i.test(name) || /(^|\/)(pytest\.ini|vitest\.config\.|jest\.config\.)/i.test(name))) findings.push({ id: "test-structure-not-found", area: "Kalite", severity: "medium", title: "Test yapısı bulunamadı", detail: "Arşiv envanterinde belirgin test klasörü veya test yapılandırması görülmedi; testler farklı adlandırılmış olabilir.", evidence: [], confidence: "low" });
-  if (!allNames.some((name) => ["license", "license.md", "license.txt", "copying"].includes(name))) findings.push({ id: "license-not-found", area: "Yönetişim", severity: "low", title: "Lisans dosyası görünmüyor", detail: "Dağıtım ve yeniden kullanım koşullarını doğrulamak için proje lisansı kontrol edilmeli.", evidence: [], confidence: "low" });
+  if (tests.count === 0) findings.push({ id: "test-structure-not-found", area: "Kalite", severity: "medium", title: "Test dosyası bulunamadı", detail: `Altı ayrı adlandırma örüntüsü ve test klasörü kuralı tarandı, eşleşme yok. Testler farklı adlandırılmış olabilir; bu bir yokluk kanıtı değil, arama kaydıdır.`, evidence: tests.searchedPatterns, confidence: "low" });
+  const licenseIssue = licenseFinding(license);
+  if (licenseIssue) findings.push(licenseIssue);
   return findings;
 }
 
@@ -384,6 +415,14 @@ export async function analyzeArchive(bytes: Buffer, originalName: string): Promi
 
     const dependencies = parseDependencies(textFiles);
     const sbom = buildSbom(dependencies);
+    const manifestBytes = new Map(entries.map((entry) => [entry.path, entry.bytes]));
+    const license = classifyLicense(textFiles, archiveNames);
+    const tests = countTests(archiveNames, textFiles);
+    const symbols = extractSymbols(textFiles, manifestBytes);
+    const sizeHotspots = findSizeHotspots(entries);
+    const wrapper = detectWrapper(archiveNames);
+    const manifestNotes = extractManifestNotes(textFiles);
+    const absenceEvidence = buildAbsenceEvidence(archiveNames, tests, license.file);
     const stack = new Map<string, "high" | "medium">();
     const has = (name: string) => textFiles.some((file) => file.path.toLowerCase().endsWith(name.toLowerCase()));
     if (has("pyproject.toml") || has("requirements.txt") || archiveNames.some((name) => name.endsWith(".py"))) stack.set("Python", "high");
@@ -402,7 +441,7 @@ export async function analyzeArchive(bytes: Buffer, originalName: string): Promi
     const entryPoints = archiveNames.filter((name) => /(^|\/)(main\.py|__main__\.py|app\.py|server\.(?:ts|js)|index\.(?:ts|js|tsx|jsx)|manage\.py|cli\.py)$/i.test(name)).slice(0, 14);
     const purpose = buildPurpose(textFiles);
     const phase2 = analyzePhase2(textFiles);
-    const findings = [...findStaticSignals(textFiles, archiveNames), ...phase2.findings];
+    const findings = [...findStaticSignals(textFiles, archiveNames, tests, license), ...phase2.findings];
     const relationships = collectRelationships(textFiles);
     const proactiveAudit = buildProactiveAudit({
       archiveNames,
@@ -410,10 +449,12 @@ export async function analyzeArchive(bytes: Buffer, originalName: string): Promi
       dependencies,
       secretFileCount: archiveNames.filter((name) => SECRET_FILENAMES.has(path.posix.basename(name).toLowerCase()) || path.posix.basename(name).toLowerCase().startsWith(".env")).length,
       hasDynamicExecution: findings.some((finding) => finding.id === "dynamic-execution"),
+      license: { class: license.class, detected: license.detected, mismatch: license.mismatch, readmeClaim: license.readmeClaim },
+      testCount: tests.count,
     });
     const report: LocalReport = {
       projectPurpose: purpose,
-      summary: `${purpose} Arşivde ${entries.length.toLocaleString("tr-TR")} öğe bulundu; ${textFiles.length.toLocaleString("tr-TR")} metin dosyası statik olarak incelendi. Kod çalıştırılmadı.`,
+      summary: `${purpose} Arşivde ${entries.length.toLocaleString("tr-TR")} öğe (${formatBytes(advertisedTotal)}) bulundu; ${textFiles.length.toLocaleString("tr-TR")} metin dosyası statik olarak incelendi. Lisans: ${license.detected ?? "doğrulanamadı"} (${license.class}). Test dosyası: ${tests.count}. Kod çalıştırılmadı.`,
       stack: [...stack.entries()].map(([name, confidence]) => ({ name, confidence })),
       fileCount: entries.length,
       analyzedFiles: textFiles.length,
@@ -426,6 +467,13 @@ export async function analyzeArchive(bytes: Buffer, originalName: string): Promi
       apiSurface: phase2.apiSurface,
       privacySignals: phase2.privacySignals,
       findings,
+      license,
+      symbols,
+      tests,
+      sizeHotspots,
+      wrapper,
+      manifestNotes,
+      absenceEvidence,
       secretFileCount: archiveNames.filter((name) => SECRET_FILENAMES.has(path.posix.basename(name).toLowerCase()) || path.posix.basename(name).toLowerCase().startsWith(".env")).length,
       analyzedAt: new Date().toISOString(),
     };
@@ -462,6 +510,13 @@ export async function analyzeArchive(bytes: Buffer, originalName: string): Promi
       apiSurface: report.apiSurface.slice(0, 40),
       privacySignals: report.privacySignals.slice(0, 20),
       findings: report.findings.slice(0, 20),
+      license: { detected: license.detected, class: license.class, file: license.file, mismatch: license.mismatch, readmeClaim: license.readmeClaim },
+      tests: { count: tests.count, frameworks: tests.frameworks },
+      symbols: { total: symbols.total, hotspots: symbols.hotspots.map((entry) => ({ file: entry.file, bytes: entry.bytes, count: entry.count, names: entry.symbols.slice(0, 20).map((symbol) => symbol.name) })) },
+      sizeHotspots,
+      wrapper,
+      manifestNotes: manifestNotes.slice(0, 12),
+      absenceEvidence,
       secretFileCount: report.secretFileCount,
       analyzedAt: report.analyzedAt,
     };
